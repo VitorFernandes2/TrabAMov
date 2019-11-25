@@ -27,16 +27,18 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:padding="15dp"
         android:background="@android:color/holo_orange_dark"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15sp"
+            android:id="@+id/Jogar"
+            android:onClick="onJogar"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_margin="10sp"
             android:text="Jogar"
             android:textSize="30dp"
             app:autoSizeMaxTextSize="35dp"
@@ -44,20 +46,62 @@
             android:fontFamily="@font/atomic_age"/>
 
         <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15sp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_margin="10sp"
             android:text="Multijogador"
             android:textSize="30dp"
             app:autoSizeMaxTextSize="35dp"
             app:autoSizeMinTextSize="25dp"
             android:fontFamily="@font/atomic_age"/>
 
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="15dp"
+        android:background="@android:color/holo_orange_dark"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_margin="10sp"
+            android:text="Jogar"
+            android:textSize="30dp"
+            app:autoSizeMaxTextSize="35dp"
+            app:autoSizeMinTextSize="25dp"
+            android:fontFamily="@font/atomic_age"/>
+
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_margin="10sp"
+            android:text="Multijogador"
+            android:textSize="30dp"
+            app:autoSizeMaxTextSize="35dp"
+            app:autoSizeMinTextSize="25dp"
+            android:fontFamily="@font/atomic_age"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="15dp"
+        android:background="@android:color/holo_orange_dark"
+        android:orientation="horizontal">
+
         <Button
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15sp"
-            android:text="Histórico"
+            android:layout_height="150dp"
+            android:layout_margin="10sp"
+            android:text="Sair"
             android:textSize="30dp"
             app:autoSizeMaxTextSize="35dp"
             app:autoSizeMinTextSize="25dp"
