@@ -1,4 +1,4 @@
-package com.example.gametest;
+package com.example.sudoku;
 
 import org.junit.Test;
 
