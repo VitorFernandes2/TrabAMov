@@ -8,4 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="TitleLabel" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">80dp</item>
+        <item name="android:fontFamily">cursive</item>
+        <item name="android:paddingTop">40sp</item>
+    </style>
+
+    <style name="exitButton" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
 </resources>
