@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Sudoku</string>
-    <string name="btnPlay">Jogar</string>
-    <string name="btnHistory">Histórico</string>
-    <string name="btnCredits">Créditos</string>
-    <string name="btnExit">Sair</string>
-</resources>
