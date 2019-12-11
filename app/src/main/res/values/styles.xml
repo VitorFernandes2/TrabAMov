@@ -15,4 +15,14 @@
 
     </style>
 
+    <style name="WhiteTextButton" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:width">300sp</item>
+    </style>
+
+    <style name="RedTextButton" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textColor">#C93838</item>
+        <item name="android:width">300sp</item>
+    </style>
+
 </resources>
