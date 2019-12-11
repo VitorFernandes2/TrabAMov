@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="title_home">Home</string>
+    <string name="title_statistics">Statistics</string>
+    <string name="title_profile">Profile</string>
+    <string name="play">Play</string>
+    <string name="credits">Credits</string>
+    <string name="exit">Exit</string>
+</resources>

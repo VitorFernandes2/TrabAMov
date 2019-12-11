@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="title_home">Inicio</string>
+    <string name="title_statistics">Estatisticas</string>
+    <string name="title_profile">Perfil</string>
+    <string name="play">Jogar</string>
+    <string name="credits">Créditos</string>
+    <string name="exit">Sair</string>
+</resources>
