@@ -24,7 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20sp">
-            
+
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/profile_image"
                 android:layout_width="100sp"
@@ -35,7 +35,31 @@
 
         </LinearLayout>
 
+        <EditText
+            android:id="@+id/inputNome"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="text"
+            android:layout_marginTop="20sp"
+            android:layout_marginRight="20sp"
+            android:layout_marginLeft="20sp"
+            android:layout_gravity="center"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change_picture"
+            android:background="@drawable/normal_button_home"
+            style="@style/WhiteTextButton"
+            android:layout_marginTop="30sp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save_changes"
+            android:background="@drawable/normal_button_home"
+            style="@style/WhiteTextButton"
+            android:layout_marginTop="30sp"/>
 
     </LinearLayout>
 

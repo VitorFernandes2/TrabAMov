@@ -1,9 +1,11 @@
 package com.example.sudoku.ui.notifications;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -23,6 +25,9 @@ public class ProfileFragment extends Fragment {
         profileViewModel =
                 ViewModelProviders.of(this).get(ProfileViewModel.class);
         View root = inflater.inflate(R.layout.fragment_notifications, container, false);
+
+        EditText t = (EditText) root.findViewById(R.id.inputNome);
+        t.setGravity(Gravity.CENTER);
 
         return root;
     }

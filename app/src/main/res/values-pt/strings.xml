@@ -7,4 +7,6 @@
     <string name="play">Jogar</string>
     <string name="credits">Créditos</string>
     <string name="exit">Sair</string>
+    <string name="save_changes">Guardar Alteraçãoes</string>
+    <string name="change_picture">Alterar Foto</string>
 </resources>

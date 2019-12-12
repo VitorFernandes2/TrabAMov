@@ -6,4 +6,6 @@
     <string name="play">Play</string>
     <string name="credits">Credits</string>
     <string name="exit">Exit</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="change_picture">Change Picture</string>
 </resources>
