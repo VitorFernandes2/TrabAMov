@@ -9,4 +9,6 @@
     <string name="exit">Sair</string>
     <string name="save_changes">Guardar Alteraçãoes</string>
     <string name="change_picture">Alterar Foto</string>
+    <string name="take_picture">Tirar Fotografia</string>
+    <string name="user">Utilizador</string>
 </resources>

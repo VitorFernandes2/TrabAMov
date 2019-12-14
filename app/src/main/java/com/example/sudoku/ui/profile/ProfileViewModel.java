@@ -1,4 +1,4 @@
-package com.example.sudoku.ui.notifications;
+package com.example.sudoku.ui.profile;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

@@ -8,4 +8,6 @@
     <string name="exit">Exit</string>
     <string name="save_changes">Save Changes</string>
     <string name="change_picture">Change Picture</string>
+    <string name="take_picture">Take Picture</string>
+    <string name="user">User</string>
 </resources>

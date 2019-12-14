@@ -1,4 +1,4 @@
-package com.example.sudoku;
+package com.example.sudoku.ui.modes;
 
 import androidx.lifecycle.ViewModelProviders;
 
@@ -12,24 +12,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class TakePictureFragment extends Fragment {
+import com.example.sudoku.R;
 
-    private TakePictureViewModel mViewModel;
+public class ModesFragment extends Fragment {
 
-    public static TakePictureFragment newInstance() {
-        return new TakePictureFragment();
+    private ModesViewModel mViewModel;
+
+    public static ModesFragment newInstance() {
+        return new ModesFragment();
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.take_picture_fragment, container, false);
+        return inflater.inflate(R.layout.modes_fragment, container, false);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(TakePictureViewModel.class);
+        mViewModel = ViewModelProviders.of(this).get(ModesViewModel.class);
         // TODO: Use the ViewModel
     }
 
