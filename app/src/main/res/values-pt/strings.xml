@@ -11,4 +11,12 @@
     <string name="change_picture">Alterar Foto</string>
     <string name="take_picture">Tirar Fotografia</string>
     <string name="user">Utilizador</string>
+    <string name="_2_players">2 Jogadores</string>
+    <string name="multiplayer">Multi Jogador</string>
+    <string name="single_player">1 Jogador</string>
+    <string name="hard">Dificil</string>
+    <string name="medium">Médio</string>
+    <string name="easy">Fácil</string>
+    <string name="cDificulties">Escolhe a dificuldade</string>
+    <string name="rotate_camera">Rodar Câmara</string>
 </resources>

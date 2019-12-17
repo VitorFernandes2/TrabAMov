@@ -15,12 +15,14 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.sudoku.GameModeFragment;
 import com.example.sudoku.R;
 import com.example.sudoku.ui.credits.CreditsFragment;
 
 public class HomeFragment extends Fragment {
 
     private HomeViewModel homeViewModel;
+    private Button btnPlay;
     private Button btnCredits;
     private Button btnExit;
 
@@ -29,6 +31,14 @@ public class HomeFragment extends Fragment {
         homeViewModel =
                 ViewModelProviders.of(this).get(HomeViewModel.class);
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
+        btnPlay = (Button) root.findViewById(R.id.btnPlay);
+        btnPlay.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                swapToPlay();
+            }
+        });
 
         btnCredits = (Button) root.findViewById(R.id.btnCredits);
         btnCredits.setOnClickListener(new View.OnClickListener() {
@@ -56,6 +66,19 @@ public class HomeFragment extends Fragment {
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
                                                 android.R.anim.fade_out);
+        fragmentTransaction.replace(R.id.nav_host_fragment, nCreditsFragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+
+    }
+
+    private void swapToPlay(){
+
+        GameModeFragment nCreditsFragment = new GameModeFragment();
+        assert getFragmentManager() != null;
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
+                android.R.anim.fade_out);
         fragmentTransaction.replace(R.id.nav_host_fragment, nCreditsFragment);
         fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();

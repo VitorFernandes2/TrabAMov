@@ -16,7 +16,7 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
+            android:text="@string/play"
             style="@style/TitleTextView"
             android:layout_marginTop="60sp"/>
 
@@ -28,28 +28,28 @@
             android:layout_marginTop="-120sp">
 
             <Button
-                android:id="@+id/btnPlay"
+                android:id="@+id/btnSinglePlayer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/play"
+                android:text="@string/single_player"
                 android:background="@drawable/normal_button_home"
                 style="@style/WhiteTextButton"
                 android:layout_marginBottom="15sp"/>
             <Button
-                android:id="@+id/btnCredits"
+                android:id="@+id/btnTwoPlayers"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/credits"
+                android:text="@string/_2_players"
                 android:background="@drawable/normal_button_home"
                 style="@style/WhiteTextButton"
                 android:layout_marginBottom="15sp"/>
             <Button
-                android:id="@+id/btnExit"
+                android:id="@+id/btnMultiplayer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/exit"
+                android:text="@string/multiplayer"
                 android:background="@drawable/normal_button_home"
-                style="@style/RedTextButton"/>
+                style="@style/WhiteTextButton"/>
 
         </LinearLayout>
 

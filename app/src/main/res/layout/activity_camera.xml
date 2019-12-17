@@ -5,21 +5,48 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.example.sudoku.MainActivity">
+
     <TextureView
         android:id="@+id/texture"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/btn_takepicture"
-        android:layout_alignParentTop="true"/>
-    <Button
-        android:id="@+id/btn_takepicture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/Linear1"/>
+
+    <LinearLayout
+        android:id="@+id/Linear1"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:orientation="horizontal"
+        android:weightSum="2.0"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16sp"
-        android:layout_marginTop="16sp"
-        android:background="@drawable/normal_button_home"
-        style="@style/WhiteTextButton"
-        android:text="@string/take_picture" />
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:background="#EAEAEA">
+        <Button
+            android:id="@+id/btn_takepicture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16sp"
+            android:layout_marginTop="16sp"
+            android:background="@drawable/normal_button_home"
+            style="@style/CameraWhiteTextButton"
+            android:text="@string/take_picture"/>
+
+        <View
+            android:layout_width="10sp"
+            android:layout_height="match_parent"/>
+
+        <Button
+            android:id="@+id/btn_rotateCamera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16sp"
+            android:layout_marginTop="16sp"
+            android:background="@drawable/normal_button_home"
+            style="@style/CameraWhiteTextButton"
+            android:text="@string/rotate_camera"/>
+
+    </LinearLayout>
+
 </RelativeLayout>

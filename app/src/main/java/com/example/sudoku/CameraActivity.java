@@ -47,6 +47,9 @@ import java.util.List;
 public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "AndroidCameraApi";
+    private static final String CAMERA_FRONT = "1";
+    private static final String CAMERA_BACK = "0";
+    private int camNumber = 0;
     private Button takePictureButton;
     private TextureView textureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
@@ -68,6 +71,8 @@ public class CameraActivity extends AppCompatActivity {
     private boolean mFlashSupported;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
+    private Button btnChangeCamera;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,8 +80,17 @@ public class CameraActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE); //will hide the title
         getSupportActionBar().hide(); // hide the title bar
 
-
         setContentView(R.layout.activity_camera);
+
+        btnChangeCamera = (Button) findViewById(R.id.btn_rotateCamera);
+        assert btnChangeCamera != null;
+        btnChangeCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchCamera();
+            }
+        });
+
         textureView = (TextureView) findViewById(R.id.texture);
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
@@ -89,6 +103,30 @@ public class CameraActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void switchCamera() {
+        if (cameraId.equals(CAMERA_FRONT)) {
+            cameraId = CAMERA_BACK;
+            camNumber = 0;
+            closeCamera();
+            reopenCamera();
+
+        } else if (cameraId.equals(CAMERA_BACK)) {
+            cameraId = CAMERA_FRONT;
+            camNumber = 1;
+            closeCamera();
+            reopenCamera();
+        }
+    }
+
+    public void reopenCamera() {
+        if (textureView.isAvailable()) {
+            openCamera();
+        } else {
+            textureView.setSurfaceTextureListener(textureListener);
+        }
+    }
+    
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -129,7 +167,7 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
             super.onCaptureCompleted(session, request, result);
-            Toast.makeText(CameraActivity.this, "Saved:" + file, Toast.LENGTH_SHORT).show();
+            Toast.makeText(CameraActivity.this, "Guardada:" + file, Toast.LENGTH_SHORT).show();
             createCameraPreview();
         }
     };
@@ -175,7 +213,14 @@ public class CameraActivity extends AppCompatActivity {
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
             // Orientation
             int rotation = getWindowManager().getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+
+            if (cameraId.equals(CAMERA_FRONT)){
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(2));
+            }
+            else{
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
+            }
+
             final File file = new File(Environment.getExternalStorageDirectory()+"/perfil.jpg");
             Log.println(Log.ERROR, null, "->" + file.getAbsolutePath());
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
@@ -268,7 +313,7 @@ public class CameraActivity extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
-            cameraId = manager.getCameraIdList()[0];
+            cameraId = manager.getCameraIdList()[camNumber];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;

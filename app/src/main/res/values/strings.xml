@@ -10,4 +10,12 @@
     <string name="change_picture">Change Picture</string>
     <string name="take_picture">Take Picture</string>
     <string name="user">User</string>
+    <string name="single_player">Single Player</string>
+    <string name="_2_players">2 Players</string>
+    <string name="multiplayer">MultiPlayer</string>
+    <string name="hard">Hard</string>
+    <string name="medium">Medium</string>
+    <string name="easy">Easy</string>
+    <string name="cDificulties">Choose the difficulty</string>
+    <string name="rotate_camera">Rotate Camera</string>
 </resources>

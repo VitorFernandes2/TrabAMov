@@ -1,6 +1,7 @@
 package com.example.sudoku;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -16,10 +17,13 @@ import androidx.navigation.ui.NavigationUI;
 
 public class MainActivity extends AppCompatActivity {
 
+    static SharedPreferences sharedPref;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        sharedPref = getSharedPreferences("user_id", MODE_PRIVATE);
         //Fullscreen mode with hidden title bar
 
         requestWindowFeature(Window.FEATURE_NO_TITLE); //will hide the title
