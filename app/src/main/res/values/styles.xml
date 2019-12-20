@@ -19,6 +19,12 @@
         <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:width">300sp</item>
     </style>
+
+    <style name="WhiteTextButtonLand" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:width">100sp</item>
+    </style>
+
     <style name="CameraWhiteTextButton" parent="TextAppearance.AppCompat.Button">
         <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:width">100sp</item>
@@ -27,6 +33,11 @@
     <style name="RedTextButton" parent="TextAppearance.AppCompat.Button">
         <item name="android:textColor">#C93838</item>
         <item name="android:width">300sp</item>
+    </style>
+
+    <style name="RedTextButtonLand" parent="TextAppearance.AppCompat.Button">
+        <item name="android:textColor">#C93838</item>
+        <item name="android:width">100sp</item>
     </style>
 
 </resources>
