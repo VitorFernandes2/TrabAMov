@@ -4,6 +4,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -42,14 +43,21 @@ public class GameModeFragment extends Fragment {
                 builder.setTitle(R.string.cDificulties);
 
                 // add a list
-                String[] animals = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
-                builder.setItems(animals, new DialogInterface.OnClickListener() {
+                String[] dificulties = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
+                builder.setItems(dificulties, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Intent intent;
                         switch (which) {
                             case 0: // Hard
+                                intent = new Intent(getActivity(), M1Activity.class);
+                                startActivity(intent);
                             case 1: // Medium
+                                intent = new Intent(getActivity(), M1Activity.class);
+                                startActivity(intent);
                             case 2: // Easy
+                                intent = new Intent(getActivity(), M1Activity.class);
+                                startActivity(intent);
                         }
                     }
                 });
@@ -70,8 +78,8 @@ public class GameModeFragment extends Fragment {
                 builder.setTitle(R.string.cDificulties);
 
                 // add a list
-                String[] animals = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
-                builder.setItems(animals, new DialogInterface.OnClickListener() {
+                String[] dificulties = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
+                builder.setItems(dificulties, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
@@ -98,8 +106,8 @@ public class GameModeFragment extends Fragment {
                 builder.setTitle(R.string.cDificulties);
 
                 // add a list
-                String[] animals = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
-                builder.setItems(animals, new DialogInterface.OnClickListener() {
+                String[] dificulties = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
+                builder.setItems(dificulties, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {

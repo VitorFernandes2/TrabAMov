@@ -18,4 +18,8 @@
     <string name="easy">Easy</string>
     <string name="cDificulties">Choose the difficulty</string>
     <string name="rotate_camera">Rotate Camera</string>
+    <string name="hints">Hints</string>
+    <string name="resolve">Solve</string>
+    <string name="anotations">Anotations</string>
+    <string name="finished">Finished</string>
 </resources>

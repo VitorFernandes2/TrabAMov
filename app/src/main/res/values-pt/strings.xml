@@ -19,4 +19,8 @@
     <string name="easy">Fácil</string>
     <string name="cDificulties">Escolhe a dificuldade</string>
     <string name="rotate_camera">Rodar Câmara</string>
+    <string name="anotations">Anotações</string>
+    <string name="hints">Dicas</string>
+    <string name="resolve">Resolver</string>
+    <string name="finished">Acabou</string>
 </resources>
