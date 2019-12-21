@@ -76,7 +76,6 @@ public class ProfileFragment extends Fragment {
         sharedPref = getActivity().getSharedPreferences("user_id", MODE_PRIVATE);
         String userId = sharedPref.getString("user_id", "Username");
         if (userId == null){
-
             sharedPref.edit().putString("user_id", "Username").commit();
         }
 
@@ -112,12 +111,20 @@ public class ProfileFragment extends Fragment {
 
     private Bitmap insertImage(){
 
-        System.gc();
-        File sd = Environment.getExternalStorageDirectory();
-        File image = new File(sd, "perfil.jpg");
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
-        bitmap = Bitmap.createScaledBitmap(bitmap,480,640,true);
+        Bitmap bitmap = null;
+
+        try{
+
+            System.gc();
+            File sd = Environment.getExternalStorageDirectory();
+            File image = new File(sd, "perfil.jpg");
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(),bmOptions);
+            bitmap = Bitmap.createScaledBitmap(bitmap,480,640,true);
+
+        }catch(Exception e){
+
+        }
 
         return bitmap;
 
