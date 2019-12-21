@@ -36,6 +36,7 @@ public class SudokuView extends View {
 
     public SudokuView(Context context) {
         super(context);
+        value = 0;
         createPaints();
     }
 
@@ -137,7 +138,9 @@ public class SudokuView extends View {
             int cellX = px / cellW;
             int cellY = py / cellH;
 
-            board[cellY][cellX] = value;
+            if (value != 0)
+                board[cellY][cellX] = value;
+
             invalidate();
 
             return true;
