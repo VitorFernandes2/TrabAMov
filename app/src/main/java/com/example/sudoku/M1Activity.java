@@ -15,6 +15,7 @@ import android.widget.Toast;
 public class M1Activity extends AppCompatActivity {
 
     private CountDownTimer countDownTimer;
+    private Button btAnotations;
     private long timeInMs;
     private SudokuView sudokuView;
     private Button bt1;
@@ -163,6 +164,14 @@ public class M1Activity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 sudokuView.setValue(9);
+            }
+        });
+
+        btAnotations = findViewById(R.id.btAnotations);
+        btAnotations.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sudokuView.setInAnotationsMode();
             }
         });
 

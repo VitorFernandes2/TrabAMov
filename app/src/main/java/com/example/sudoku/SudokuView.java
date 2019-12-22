@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +18,7 @@ import java.util.Random;
 public class SudokuView extends View {
 
     public static final int BOARD_SIZE = 9;
+    private boolean inAnotationsMode;
     Paint paintMainLines, paintSubLines, paintMainNumbers, paintSmallNumbers;
 
     int [][] board = {
@@ -32,11 +34,26 @@ public class SudokuView extends View {
             {5, 0, 6,  0, 7, 0,  8, 0, 9},
             {0, 1, 0,  2, 0, 3,  0, 4, 0}
     };
+    int [][] boardComp = {
+            {0, 1, 0,  2, 0, 3,  0, 4, 0},
+            {5, 0, 6,  0, 7, 0,  8, 0, 9},
+            {0, 1, 0,  2, 0, 3,  0, 4, 0},
+
+            {5, 0, 6,  0, 7, 0,  8, 0, 9},
+            {0, 1, 0,  2, 0, 3,  0, 4, 0},
+            {5, 0, 6,  0, 7, 0,  8, 0, 9},
+
+            {0, 1, 0,  2, 0, 3,  0, 4, 0},
+            {5, 0, 6,  0, 7, 0,  8, 0, 9},
+            {0, 1, 0,  2, 0, 3,  0, 4, 0}
+    };
+    private int [][][]anotations = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
     private int value;
 
     public SudokuView(Context context) {
         super(context);
         value = 0;
+        inAnotationsMode = false;
         createPaints();
     }
 
@@ -95,21 +112,18 @@ public class SudokuView extends View {
 
                 } else {
 
-                    List<Integer> possibilities = Arrays.asList(1,2,3,4,5,6,7,8,9);
-                    Collections.shuffle(possibilities);
-                    Random rnd = new Random(SystemClock.elapsedRealtime());
-                    possibilities = possibilities.subList(0, rnd.nextInt(6) + 1);
-
                     int x = cellW / 6 + cellW * c;
                     int y = cellH / 6 + cellH * r;
 
-                    for (int p = 0; p <= BOARD_SIZE; p++) {
+                    for (int p = 0; p < BOARD_SIZE; p++) {
 
-                        if (possibilities.contains(p)){
+                        int n2 = anotations[p][r][c];
 
-                            int xp = x + (p - 1)%3 * cellW / 3;
-                            int yp = y + (p - 1)/3 * cellH / 3 + cellH / 9;
-                            canvas.drawText(""+p, xp, yp, paintSmallNumbers);
+                        if (n2 != 0){
+
+                            int xp = x + (p)%3 * cellW / 3;
+                            int yp = y + (p)/3 * cellH / 3 + cellH / 9;
+                            canvas.drawText("" + n2, xp, yp, paintSmallNumbers);
 
                         }
 
@@ -138,8 +152,14 @@ public class SudokuView extends View {
             int cellX = px / cellW;
             int cellY = py / cellH;
 
-            if (value != 0)
-                board[cellY][cellX] = value;
+            if (value != 0){
+                if (boardComp[cellY][cellX] == 0){
+                    if (!inAnotationsMode)
+                        board[cellY][cellX] = value;
+                    else
+                        anotations[value - 1][cellY][cellX] = value;
+                }
+            }
 
             invalidate();
 
@@ -162,6 +182,10 @@ public class SudokuView extends View {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public void setInAnotationsMode() {
+            this.inAnotationsMode = !this.inAnotationsMode;
     }
 
 }
