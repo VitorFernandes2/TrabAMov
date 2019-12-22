@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -40,7 +41,19 @@ public class M1Activity extends AppCompatActivity {
 
         tvTimer = findViewById(R.id.tvTimer);
 
-        timeInMs = 6000;
+        int difficulty = getIntent().getIntExtra("difficulty", 4);
+
+        switch (difficulty){
+            case 7:
+                timeInMs = 1800000;
+                break;
+            case 5:
+                timeInMs = 900000;
+                break;
+            default:
+                timeInMs = 450000;
+                break;
+        }
 
         createButtons();
         startTimer();

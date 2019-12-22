@@ -48,17 +48,23 @@ public class GameModeFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent;
+                        int value = 3;
                         switch (which) {
                             case 0: // Hard
-                                intent = new Intent(getActivity(), M1Activity.class);
-                                startActivity(intent);
+                                value = 7;
+                                break;
                             case 1: // Medium
-                                intent = new Intent(getActivity(), M1Activity.class);
-                                startActivity(intent);
+                                value = 5;
+                                break;
                             case 2: // Easy
-                                intent = new Intent(getActivity(), M1Activity.class);
-                                startActivity(intent);
+                                value = 3;
+                                break;
                         }
+
+                        intent = new Intent(getActivity(), M1Activity.class);
+                        intent.putExtra("difficulty", value);
+                        startActivity(intent);
+
                     }
                 });
 
@@ -84,8 +90,11 @@ public class GameModeFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0: // Hard
+                                break;
                             case 1: // Medium
+                                break;
                             case 2: // Easy
+                                break;
                         }
                     }
                 });
@@ -112,8 +121,11 @@ public class GameModeFragment extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0: // Hard
+                                break;
                             case 1: // Medium
+                                break;
                             case 2: // Easy
+                                break;
                         }
                     }
                 });
