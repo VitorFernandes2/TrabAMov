@@ -4,22 +4,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import pt.isec.ans.sudokulibrary.Sudoku;
 
@@ -431,7 +424,8 @@ public class SudokuView extends View {
                         anotations[value - 1][selectedCelLin][selectedCelCol] = value;
                 }
             }
-
+        
+        invalidateButtons();
         invalidate();
 
     }
@@ -484,13 +478,14 @@ public class SudokuView extends View {
 
         if (selectedCelLin != -1 && selectedCelCol != -1 && hints > 0){
 
-            if (board[selectedCelCol][selectedCelLin] == 0){
+            if (board[selectedCelLin][selectedCelCol] == 0){
 
                 int value = getValue(selectedCelLin, selectedCelCol);
                 if (value != -1){
                     board[selectedCelLin][selectedCelCol] = value;
                     boardComp[selectedCelLin][selectedCelCol] = value;
                     hints--;
+                    invalidate();
                 }
 
             }
@@ -501,19 +496,22 @@ public class SudokuView extends View {
 
     public void deleteCellValue(){
 
-        //Se uma célula estiver seleccionada
-        if (selectedCelCol != -1 && selectedCelLin != -1){
+        //Se o valor não for de origem ou uma hint
+        if (boardComp[selectedCelLin][selectedCelCol] == 0)
+            //Se uma célula estiver seleccionada
+            if (selectedCelCol != -1 && selectedCelLin != -1){
 
-            //Se a célula estiver correta decrementa o valor
-            if (Resolve(board[selectedCelCol][selectedCelLin], selectedCelCol, selectedCelLin))
-                points--;
+                //Se a célula estiver correta decrementa o valor
+                if (Resolve(board[selectedCelLin][selectedCelCol], selectedCelCol, selectedCelLin))
+                    points--;
 
-            this.tvPoints.setText("" + points);
+                this.tvPoints.setText("" + points);
 
-            board[selectedCelLin][selectedCelCol] = 0;
-            boardComp[selectedCelLin][selectedCelCol] = 0;
+                board[selectedCelLin][selectedCelCol] = 0;
+                boardComp[selectedCelLin][selectedCelCol] = 0;
+                invalidate();
 
-        }
+            }
 
     }
 
@@ -524,5 +522,33 @@ public class SudokuView extends View {
     public void setPoints(int points) {
         this.points = points;
         this.tvPoints.setText(""+points);
+    }
+
+    public int getHints() {
+        return hints;
+    }
+
+    public void setHints(int hints) {
+        this.hints = hints;
+    }
+
+    public int[][][] getAnotations() {
+        return anotations;
+    }
+
+    public void setAnotations(int[][][] anotations) {
+        this.anotations = anotations;
+    }
+
+    public void setAnotationsMode(boolean inAnotationsMode) {
+        this.inAnotationsMode = inAnotationsMode;
+    }
+
+    public void setSelectedCelLin(int selectedCelLin) {
+        this.selectedCelLin = selectedCelLin;
+    }
+
+    public void setSelectedCelCol(int selectedCelCol) {
+        this.selectedCelCol = selectedCelCol;
     }
 }

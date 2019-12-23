@@ -26,15 +26,7 @@ public class M1Activity extends AppCompatActivity {
     private Button btAnotations;
     private long timeInMs;
     private SudokuView sudokuView;
-    private Button bt1;
-    private Button bt2;
-    private Button bt3;
-    private Button bt4;
-    private Button bt5;
-    private Button bt6;
-    private Button bt7;
-    private Button bt8;
-    private Button bt9;
+    private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9, btHint, btApaga;
     private TextView tvTimer, tvErrors, tvPoints;
     private int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     private int[][] boardComp = new int[BOARD_SIZE][BOARD_SIZE];
@@ -231,6 +223,20 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
+        btHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sudokuView.getHint();
+            }
+        });
+
+        btApaga.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sudokuView.deleteCellValue();
+            }
+        });
+
     }
 
     private void createButtons(){
@@ -245,6 +251,8 @@ public class M1Activity extends AppCompatActivity {
         bt8 = findViewById(R.id.button8);
         bt9 = findViewById(R.id.button9);
         btAnotations = findViewById(R.id.btAnotations);
+        btHint = findViewById(R.id.btHints);
+        btApaga = findViewById(R.id.btDelete);
 
     }
 
@@ -275,10 +283,29 @@ public class M1Activity extends AppCompatActivity {
         outState.putIntArray("boardCompLine9", boardComp[8]);
 
         outState.putLong("time", timeInMs);
-
         outState.putInt("errors", sudokuView.getErrors());
-
         outState.putInt("points", sudokuView.getPoints());
+        outState.putInt("hints", sudokuView.getHints());
+        outState.putBoolean("AnotationsMode", sudokuView.isInAnotationsMode());
+
+        //guardar anotations
+        int[][][] map = sudokuView.getAnotations();
+        for (int i = 0; i < BOARD_SIZE; i++) {
+
+            outState.putIntArray("anotationsV"+i+"L1", map[i][0]);
+            outState.putIntArray("anotationsV"+i+"L2", map[i][1]);
+            outState.putIntArray("anotationsV"+i+"L3", map[i][2]);
+            outState.putIntArray("anotationsV"+i+"L4", map[i][3]);
+            outState.putIntArray("anotationsV"+i+"L5", map[i][4]);
+            outState.putIntArray("anotationsV"+i+"L6", map[i][5]);
+            outState.putIntArray("anotationsV"+i+"L7", map[i][6]);
+            outState.putIntArray("anotationsV"+i+"L8", map[i][7]);
+            outState.putIntArray("anotationsV"+i+"L9", map[i][8]);
+
+        }
+
+        outState.putInt("col", sudokuView.getSelectedCelCol());
+        outState.putInt("row", sudokuView.getSelectedCelLin());
 
     }
 
@@ -322,6 +349,32 @@ public class M1Activity extends AppCompatActivity {
 
         //Reiniciar os pontos já existentes
         sudokuView.setPoints(savedInstanceState.getInt("points"));
+
+        //Reinicia as dicas
+        sudokuView.setHints(savedInstanceState.getInt("hints"));
+
+        //Reinicia anotationsMode
+        sudokuView.setAnotationsMode(savedInstanceState.getBoolean("AnotationsMode"));
+
+        //guardar anotations
+        int[][][] map = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+
+            map[i][0] = savedInstanceState.getIntArray("anotationsV"+i+"L1");
+            map[i][1] = savedInstanceState.getIntArray("anotationsV"+i+"L2");
+            map[i][2] = savedInstanceState.getIntArray("anotationsV"+i+"L3");
+            map[i][3] = savedInstanceState.getIntArray("anotationsV"+i+"L4");
+            map[i][4] = savedInstanceState.getIntArray("anotationsV"+i+"L5");
+            map[i][5] = savedInstanceState.getIntArray("anotationsV"+i+"L6");
+            map[i][6] = savedInstanceState.getIntArray("anotationsV"+i+"L7");
+            map[i][7] = savedInstanceState.getIntArray("anotationsV"+i+"L8");
+            map[i][8] = savedInstanceState.getIntArray("anotationsV"+i+"L9");
+
+        }
+
+        sudokuView.setAnotations(map);
+        sudokuView.setSelectedCelCol(savedInstanceState.getInt("col"));
+        sudokuView.setSelectedCelLin(savedInstanceState.getInt("row"));
 
     }
 
