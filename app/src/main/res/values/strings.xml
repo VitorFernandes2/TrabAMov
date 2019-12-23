@@ -23,4 +23,7 @@
     <string name="anotations">Anotations</string>
     <string name="finished">Finished</string>
     <string name="errors">Errors:</string>
+    <string name="DefeatMessage">You have lost! Better luck for the next time!</string>
+    <string name="thanks">Thank you!</string>
+    <string name="WinMessage">Congratulations, you have won!</string>
 </resources>

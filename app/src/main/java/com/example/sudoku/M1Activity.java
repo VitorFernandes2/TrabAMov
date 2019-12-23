@@ -1,8 +1,12 @@
 package com.example.sudoku;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -132,6 +136,19 @@ public class M1Activity extends AppCompatActivity {
             public void onFinish() {
                 //Quando o tempo acabar
                 tvTimer.setText(getString(R.string.finished) + "!");
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(M1Activity.this);
+                builder.setTitle(R.string.finished);
+                builder.setMessage(R.string.DefeatMessage)
+                        .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(M1Activity.this, MainActivity.class);
+                                startActivity(intent);
+                            }
+                        });
+                AlertDialog alert = builder.create();
+                alert.show();
+
             }
 
         }.start();

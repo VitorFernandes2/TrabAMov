@@ -1,6 +1,8 @@
 package com.example.sudoku;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +11,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -105,6 +110,7 @@ public class SudokuView extends View {
                     int x = cellW / 2 + cellW * c;
                     int y = cellH / 2 + cellH * r + cellH / 6;
 
+                    //Se este valor estiver errado
                     if (!Resolve(n, c, r)){
 
                         paintMainNumbers.setColor(Color.RED);
@@ -321,6 +327,37 @@ public class SudokuView extends View {
         return inAnotationsMode;
     }
 
+    //Verifica se ganhou
+    public boolean result(){
+
+        try {
+
+            JSONObject json = new JSONObject();
+            json.put("board", convert(boardComp));
+            String strJson = Sudoku.solve(json.toString(), 1500);
+            json = new JSONObject(strJson);
+
+            //Se existir esse valor
+            if (json.optInt("result",0) == 1){
+
+                JSONArray arrayJson = json.getJSONArray("board");
+                int [][] array = convert(arrayJson);
+
+                for (int i = 0; i < BOARD_SIZE; i++)
+                    for (int j = 0; j < BOARD_SIZE; j++)
+                        if (board[i][j] != array[i][j])
+                            return false;
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return true;
+
+    }
+
     private void invalidateButtons(){
 
         if (!inAnotationsMode){
@@ -335,6 +372,54 @@ public class SudokuView extends View {
                     list.add(board[j][selectedCelCol]);
                 }
 
+            }
+
+            int j, i, iFim, jFim;
+            j = i = iFim = jFim = 0;
+
+            if (selectedCelLin >= 0 && selectedCelLin <= 2){
+
+                i = 0;
+                iFim = 2;
+
+            }
+            else if (selectedCelLin >= 3 && selectedCelLin <= 5){
+
+                i = 3;
+                iFim = 5;
+
+            }
+            else if(selectedCelLin >= 6 && selectedCelLin <= 8){
+
+                i = 6;
+                iFim = 8;
+
+            }
+
+            if (selectedCelCol >= 0 && selectedCelCol <= 2){
+
+                j = 0;
+                jFim = 2;
+
+            }
+            else if (selectedCelCol >= 3 && selectedCelCol <= 5){
+
+                j = 3;
+                jFim = 5;
+
+            }
+            else if(selectedCelCol >= 6 && selectedCelCol <= 8){
+
+                j = 6;
+                jFim = 8;
+
+            }
+
+            for (; i <= iFim; i++){
+                for (int j2 = j;j2 <= jFim; j2++){
+                    if (board[i][j2] != 0)
+                        list.add(board[i][j2]);
+                }
             }
 
             if (list.contains(1)){
@@ -419,12 +504,29 @@ public class SudokuView extends View {
                             tvPoints.setText(""+points);
                         }
 
+                        //Se tiver ganho
+                        if (result()){
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            builder.setTitle(R.string.finished);
+                            builder.setMessage(R.string.WinMessage)
+                                    .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            Intent intent = new Intent(getContext(), MainActivity.class);
+                                            getContext().startActivity(intent);
+                                        }
+                                    });
+                            AlertDialog alert = builder.create();
+                            alert.show();
+
+                        }
+
                     }
                     else
                         anotations[value - 1][selectedCelLin][selectedCelCol] = value;
                 }
             }
-        
+
         invalidateButtons();
         invalidate();
 
@@ -448,7 +550,6 @@ public class SudokuView extends View {
     }
 
     private int getValue(int row, int col){
-
 
         try {
 
