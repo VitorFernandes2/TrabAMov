@@ -21,6 +21,7 @@
     <string name="rotate_camera">Rodar Câmara</string>
     <string name="anotations">Anotações</string>
     <string name="hints">Dicas</string>
-    <string name="resolve">Resolver</string>
+    <string name="delete">Apagar</string>
     <string name="finished">Acabou</string>
+    <string name="errors">Erros:</string>
 </resources>

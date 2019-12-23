@@ -4,16 +4,24 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
+import pt.isec.ans.sudokulibrary.Sudoku;
 
 public class SudokuView extends View {
 
@@ -21,39 +29,34 @@ public class SudokuView extends View {
     private boolean inAnotationsMode;
     Paint paintMainLines, paintSubLines, paintMainNumbers, paintSmallNumbers;
 
-    int [][] board = {
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0}
-    };
-    int [][] boardComp = {
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-
-            {0, 1, 0,  2, 0, 3,  0, 4, 0},
-            {5, 0, 6,  0, 7, 0,  8, 0, 9},
-            {0, 1, 0,  2, 0, 3,  0, 4, 0}
-    };
+    int [][] board = new int[BOARD_SIZE][BOARD_SIZE];
+    int [][] boardComp = new int[BOARD_SIZE][BOARD_SIZE];
     private int [][][]anotations = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
-    private int value;
+    private int selectedCelLin = -1;
+    private int selectedCelCol = -1;
+    private int points = 0;
+    private int errors = 0;
+    private int hints = 3;
 
-    public SudokuView(Context context) {
+    private TextView tvErrors, tvPoints;
+    private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9;
+
+    public SudokuView(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
+                      Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
+                      TextView tvPoints) {
         super(context);
-        value = 0;
         inAnotationsMode = false;
+        this.bt1 = bt1;
+        this.bt2 = bt2;
+        this.bt3 = bt3;
+        this.bt4 = bt4;
+        this.bt5 = bt5;
+        this.bt6 = bt6;
+        this.bt7 = bt7;
+        this.bt8 = bt8;
+        this.bt9 = bt9;
+        this.tvErrors = tvErrors;
+        this.tvPoints = tvPoints;
         createPaints();
     }
 
@@ -108,7 +111,26 @@ public class SudokuView extends View {
 
                     int x = cellW / 2 + cellW * c;
                     int y = cellH / 2 + cellH * r + cellH / 6;
-                    canvas.drawText(""+n, x, y, paintMainNumbers);
+
+                    if (!Resolve(n, c, r)){
+
+                        paintMainNumbers.setColor(Color.RED);
+                        canvas.drawText(""+n, x, y, paintMainNumbers);
+                        paintMainNumbers.setColor(Color.rgb(0,0,128));
+                        board[r][c] = 0;
+                        errors++;
+                        tvErrors.setText(""+errors);
+
+                    }else{
+
+                        if (boardComp[r][c] == 0)
+                            paintMainNumbers.setColor(Color.GRAY);
+
+                        canvas.drawText(""+n, x, y, paintMainNumbers);
+                        paintMainNumbers.setColor(Color.rgb(0,0,128));
+                    }
+
+
 
                 } else {
 
@@ -127,6 +149,24 @@ public class SudokuView extends View {
 
                         }
 
+                    }
+
+                    if (!inAnotationsMode){
+                        if (selectedCelCol == c && selectedCelLin == r){
+
+                            Paint paint = new Paint();
+                            paint.setColor(Color.parseColor("#b2b2b2"));
+                            canvas.drawRect(cellW * c + 2, cellH * r + 2, x + cellW - 20, y + cellH - 20, paint);
+
+                        }
+                    }else{
+                        if (selectedCelCol == c && selectedCelLin == r){
+
+                            Paint paint = new Paint();
+                            paint.setColor(Color.parseColor("#cccccc85"));
+                            canvas.drawRect(cellW * c + 2, cellH * r + 2, x + cellW - 20, y + cellH - 20, paint);
+
+                        }
                     }
 
                 }
@@ -152,15 +192,10 @@ public class SudokuView extends View {
             int cellX = px / cellW;
             int cellY = py / cellH;
 
-            if (value != 0){
-                if (boardComp[cellY][cellX] == 0){
-                    if (!inAnotationsMode)
-                        board[cellY][cellX] = value;
-                    else
-                        anotations[value - 1][cellY][cellX] = value;
-                }
-            }
-
+            selectedCelLin = cellY;
+            selectedCelCol = cellX;
+            //Assim que clicar numa posição invalida os botões com os valores já inseridos
+            invalidateButtons();
             invalidate();
 
             return true;
@@ -173,19 +208,321 @@ public class SudokuView extends View {
 
     public void setBoard(int[][] board){
         this.board = board;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                this.boardComp[i][j] = this.board[i][j];
+            }
+        }
         invalidate();
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
     }
 
     public void setInAnotationsMode() {
             this.inAnotationsMode = !this.inAnotationsMode;
+            invalidateButtons();
+            invalidate();
     }
 
+    private int[][] convert(JSONArray arrayJson) {
+
+        int[][] array = new int[9][9];
+
+        try{
+
+            for (int r = 0; r < 9; r++) {
+
+                JSONArray jsonRow = arrayJson.getJSONArray(r);
+                for (int c = 0; c < 9; c++) {
+
+                    array[r][c] = jsonRow.getInt(c);
+
+                }
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return array;
+
+    }
+
+    private JSONArray convert(int [][]array){
+
+        JSONArray arrayJson = new JSONArray();
+
+        try{
+
+            for (int r = 0; r < 9; r++) {
+
+                JSONArray jsonRow = new JSONArray();
+
+                for (int c = 0; c < 9; c++) {
+
+                    jsonRow.put(array[r][c]);
+
+                }
+
+                arrayJson.put(jsonRow);
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return arrayJson;
+
+    }
+
+    private boolean Resolve(int value, int column, int row){
+
+        try {
+
+            JSONObject json = new JSONObject();
+            json.put("board", convert(boardComp));
+            String strJson = Sudoku.solve(json.toString(), 1500);
+            json = new JSONObject(strJson);
+
+            //Se existir esse valor
+            if (json.optInt("result",0) == 1){
+
+                JSONArray arrayJson = json.getJSONArray("board");
+                int [][] array = convert(arrayJson);
+
+                //O valor está errado
+                if (array[row][column] != value){
+
+                    Log.e("Sudoku", "O valor está errado!");
+                    return false;
+
+                }
+                else{
+                    Log.e("Sudoku", "O valor está certo!");
+                    return true;
+                }
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return true;
+
+    }
+
+    public int[][] getBoard() {
+        return board;
+    }
+
+    public int getSelectedCelLin() {
+        return selectedCelLin;
+    }
+
+    public int getSelectedCelCol() {
+        return selectedCelCol;
+    }
+
+    public boolean isInAnotationsMode() {
+        return inAnotationsMode;
+    }
+
+    private void invalidateButtons(){
+
+        if (!inAnotationsMode){
+            List<Integer> list = new ArrayList<>();
+
+            for (int j = 0; j < BOARD_SIZE; j++) {
+
+                if (board[selectedCelLin][j] != 0){
+                    list.add(board[selectedCelLin][j]);
+                }
+                if (board[j][selectedCelCol] != 0){
+                    list.add(board[j][selectedCelCol]);
+                }
+
+            }
+
+            if (list.contains(1)){
+                bt1.setVisibility(View.INVISIBLE);
+            }else{
+                bt1.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(2)){
+                bt2.setVisibility(View.INVISIBLE);
+            }else{
+                bt2.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(3)){
+                bt3.setVisibility(View.INVISIBLE);
+            }else{
+                bt3.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(4)){
+                bt4.setVisibility(View.INVISIBLE);
+            }else{
+                bt4.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(5)){
+                bt5.setVisibility(View.INVISIBLE);
+            }else{
+                bt5.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(6)){
+                bt6.setVisibility(View.INVISIBLE);
+            }else{
+                bt6.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(7)){
+                bt7.setVisibility(View.INVISIBLE);
+            }else{
+                bt7.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(8)){
+                bt8.setVisibility(View.INVISIBLE);
+            }else{
+                bt8.setVisibility(View.VISIBLE);
+            }
+
+            if (list.contains(9)){
+                bt9.setVisibility(View.INVISIBLE);
+            }else{
+                bt9.setVisibility(View.VISIBLE);
+            }
+        }else{
+            bt1.setVisibility(View.VISIBLE);
+            bt2.setVisibility(View.VISIBLE);
+            bt3.setVisibility(View.VISIBLE);
+            bt4.setVisibility(View.VISIBLE);
+            bt5.setVisibility(View.VISIBLE);
+            bt6.setVisibility(View.VISIBLE);
+            bt7.setVisibility(View.VISIBLE);
+            bt8.setVisibility(View.VISIBLE);
+            bt9.setVisibility(View.VISIBLE);
+        }
+
+    }
+
+    public void setValue(int value){
+
+        if (selectedCelCol != -1 && selectedCelLin != -1)
+            if (value != 0){
+                if (boardComp[selectedCelLin][selectedCelCol] == 0){
+                    if (!inAnotationsMode){
+
+                        board[selectedCelLin][selectedCelCol] = value;
+
+                        //Se estiver correto
+                        if (Resolve(value, selectedCelCol, selectedCelLin)){
+                            points++;
+                            tvPoints.setText(""+points);
+                        }
+
+                    }
+                    else
+                        anotations[value - 1][selectedCelLin][selectedCelCol] = value;
+                }
+            }
+
+        invalidate();
+
+    }
+
+    public int[][] getBoardComp() {
+        return boardComp;
+    }
+
+    public void setBoardComp(int[][] boardComp) {
+        this.boardComp = boardComp;
+    }
+
+    public int getErrors() {
+        return errors;
+    }
+
+    public void setErrors(int errors) {
+        this.errors = errors;
+        this.tvErrors.setText(""+errors);
+    }
+
+    private int getValue(int row, int col){
+
+
+        try {
+
+            JSONObject json = new JSONObject();
+            json.put("board", convert(boardComp));
+            String strJson = Sudoku.solve(json.toString(), 1500);
+            json = new JSONObject(strJson);
+
+            //Se existir esse valor
+            if (json.optInt("result",0) == 1){
+
+                JSONArray arrayJson = json.getJSONArray("board");
+                int [][] array = convert(arrayJson);
+                return array[row][col];
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return -1;
+
+    }
+
+    public void getHint(){
+
+        if (selectedCelLin != -1 && selectedCelCol != -1 && hints > 0){
+
+            if (board[selectedCelCol][selectedCelLin] == 0){
+
+                int value = getValue(selectedCelLin, selectedCelCol);
+                if (value != -1){
+                    board[selectedCelLin][selectedCelCol] = value;
+                    boardComp[selectedCelLin][selectedCelCol] = value;
+                    hints--;
+                }
+
+            }
+
+        }
+
+    }
+
+    public void deleteCellValue(){
+
+        //Se uma célula estiver seleccionada
+        if (selectedCelCol != -1 && selectedCelLin != -1){
+
+            //Se a célula estiver correta decrementa o valor
+            if (Resolve(board[selectedCelCol][selectedCelLin], selectedCelCol, selectedCelLin))
+                points--;
+
+            this.tvPoints.setText("" + points);
+
+            board[selectedCelLin][selectedCelCol] = 0;
+            boardComp[selectedCelLin][selectedCelCol] = 0;
+
+        }
+
+    }
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+        this.tvPoints.setText(""+points);
+    }
 }

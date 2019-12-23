@@ -15,7 +15,7 @@
         android:background="@drawable/normal_button_home"
         android:text="@string/anotations"
         app:layout_constraintBottom_toBottomOf="@+id/btHints"
-        app:layout_constraintEnd_toStartOf="@+id/btResolve"
+        app:layout_constraintEnd_toStartOf="@+id/btDelete"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btHints"
         app:layout_constraintTop_toTopOf="@+id/btHints" />
@@ -190,12 +190,12 @@
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <Button
-        android:id="@+id/btResolve"
+        android:id="@+id/btDelete"
         style="@style/WhiteTextButtonLand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/normal_button_home"
-        android:text="@string/resolve"
+        android:text="@string/delete"
         app:layout_constraintBottom_toBottomOf="@+id/btAnotations"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -228,7 +228,7 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Erros:"
+        android:text="@string/errors"
         app:layout_constraintBottom_toBottomOf="@+id/textView5"
         app:layout_constraintEnd_toStartOf="@+id/textView6"
         app:layout_constraintHorizontal_bias="0.5"

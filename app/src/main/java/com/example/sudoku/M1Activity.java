@@ -1,5 +1,6 @@
 package com.example.sudoku;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -12,8 +13,15 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import pt.isec.ans.sudokulibrary.Sudoku;
+
 public class M1Activity extends AppCompatActivity {
 
+    private static final int BOARD_SIZE = 9;
     private CountDownTimer countDownTimer;
     private Button btAnotations;
     private long timeInMs;
@@ -27,7 +35,10 @@ public class M1Activity extends AppCompatActivity {
     private Button bt7;
     private Button bt8;
     private Button bt9;
-    private TextView tvTimer;
+    private TextView tvTimer, tvErrors, tvPoints;
+    private int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
+    private int[][] boardComp = new int[BOARD_SIZE][BOARD_SIZE];
+    private int[][][] anotations = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +48,15 @@ public class M1Activity extends AppCompatActivity {
         setContentView(R.layout.activity_m1);
 
         final FrameLayout flSudoku = findViewById(R.id.flSudokuM1);
-        sudokuView = new SudokuView(this);
+        createButtons();
+
+        tvErrors = findViewById(R.id.textView6);
+        tvPoints = findViewById(R.id.textView5);
+        sudokuView = new SudokuView(this, bt1, bt2, bt3, bt4, bt5, bt6, bt7,
+                bt8, bt9, tvErrors, tvPoints);
         flSudoku.addView(sudokuView);
+        createButtonsListener();
+
 
         tvTimer = findViewById(R.id.tvTimer);
 
@@ -56,8 +74,56 @@ public class M1Activity extends AppCompatActivity {
                 break;
         }
 
-        createButtons();
+        gerar(difficulty);
+
         startTimer();
+
+    }
+
+    private void gerar(int level){
+
+        String strJson = Sudoku.generate(level);
+        Log.e("Sudoku", "Json: " + strJson);
+
+        try{
+            JSONObject json = new JSONObject(strJson);
+
+            if (json.optInt("result",0) == 1){
+
+                JSONArray arrayJson = json.getJSONArray("board");
+                int [][] array = convert(arrayJson);
+                sudokuView.setBoard(array);
+
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private int[][] convert(JSONArray arrayJson) {
+
+        int[][] array = new int[9][9];
+
+        try{
+
+            for (int r = 0; r < 9; r++) {
+
+                JSONArray jsonRow = arrayJson.getJSONArray(r);
+                for (int c = 0; c < 9; c++) {
+
+                    array[r][c] = jsonRow.getInt(c);
+
+                }
+
+            }
+
+        }catch (Exception e){
+
+        }
+
+        return array;
 
     }
 
@@ -93,9 +159,8 @@ public class M1Activity extends AppCompatActivity {
 
     }
 
-    private void createButtons(){
+    private void createButtonsListener(){
 
-        bt1 = findViewById(R.id.button);
         bt1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,7 +168,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt2 = findViewById(R.id.button2);
         bt2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -111,7 +175,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt3 = findViewById(R.id.button3);
         bt3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,7 +182,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt4 = findViewById(R.id.button4);
         bt4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -127,7 +189,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt5 = findViewById(R.id.button5);
         bt5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,7 +196,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt6 = findViewById(R.id.button6);
         bt6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -143,7 +203,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt7 = findViewById(R.id.button7);
         bt7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,7 +210,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt8 = findViewById(R.id.button8);
         bt8.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -159,7 +217,6 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        bt9 = findViewById(R.id.button9);
         bt9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -167,13 +224,104 @@ public class M1Activity extends AppCompatActivity {
             }
         });
 
-        btAnotations = findViewById(R.id.btAnotations);
         btAnotations.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 sudokuView.setInAnotationsMode();
             }
         });
+
+    }
+
+    private void createButtons(){
+
+        bt1 = findViewById(R.id.button);
+        bt2 = findViewById(R.id.button2);
+        bt3 = findViewById(R.id.button3);
+        bt4 = findViewById(R.id.button4);
+        bt5 = findViewById(R.id.button5);
+        bt6 = findViewById(R.id.button6);
+        bt7 = findViewById(R.id.button7);
+        bt8 = findViewById(R.id.button8);
+        bt9 = findViewById(R.id.button9);
+        btAnotations = findViewById(R.id.btAnotations);
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        board = sudokuView.getBoard();
+        outState.putIntArray("boardLine1", board[0]);
+        outState.putIntArray("boardLine2", board[1]);
+        outState.putIntArray("boardLine3", board[2]);
+        outState.putIntArray("boardLine4", board[3]);
+        outState.putIntArray("boardLine5", board[4]);
+        outState.putIntArray("boardLine6", board[5]);
+        outState.putIntArray("boardLine7", board[6]);
+        outState.putIntArray("boardLine8", board[7]);
+        outState.putIntArray("boardLine9", board[8]);
+
+        boardComp = sudokuView.getBoardComp();
+        outState.putIntArray("boardCompLine1", boardComp[0]);
+        outState.putIntArray("boardCompLine2", boardComp[1]);
+        outState.putIntArray("boardCompLine3", boardComp[2]);
+        outState.putIntArray("boardCompLine4", boardComp[3]);
+        outState.putIntArray("boardCompLine5", boardComp[4]);
+        outState.putIntArray("boardCompLine6", boardComp[5]);
+        outState.putIntArray("boardCompLine7", boardComp[6]);
+        outState.putIntArray("boardCompLine8", boardComp[7]);
+        outState.putIntArray("boardCompLine9", boardComp[8]);
+
+        outState.putLong("time", timeInMs);
+
+        outState.putInt("errors", sudokuView.getErrors());
+
+        outState.putInt("points", sudokuView.getPoints());
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        //Reiniciar a board
+        board[0] = savedInstanceState.getIntArray("boardLine1");
+        board[1] = savedInstanceState.getIntArray("boardLine2");
+        board[2] = savedInstanceState.getIntArray("boardLine3");
+        board[3] = savedInstanceState.getIntArray("boardLine4");
+        board[4] = savedInstanceState.getIntArray("boardLine5");
+        board[5] = savedInstanceState.getIntArray("boardLine6");
+        board[6] = savedInstanceState.getIntArray("boardLine7");
+        board[7] = savedInstanceState.getIntArray("boardLine8");
+        board[8] = savedInstanceState.getIntArray("boardLine9");
+
+        sudokuView.setBoard(board);
+
+        //Reiniciar o comparador
+        boardComp[0] = savedInstanceState.getIntArray("boardCompLine1");
+        boardComp[1] = savedInstanceState.getIntArray("boardCompLine2");
+        boardComp[2] = savedInstanceState.getIntArray("boardCompLine3");
+        boardComp[3] = savedInstanceState.getIntArray("boardCompLine4");
+        boardComp[4] = savedInstanceState.getIntArray("boardCompLine5");
+        boardComp[5] = savedInstanceState.getIntArray("boardCompLine6");
+        boardComp[6] = savedInstanceState.getIntArray("boardCompLine7");
+        boardComp[7] = savedInstanceState.getIntArray("boardCompLine8");
+        boardComp[8] = savedInstanceState.getIntArray("boardCompLine9");
+
+        sudokuView.setBoardComp(boardComp);
+
+        //Reiniciar o timer
+        this.timeInMs = savedInstanceState.getLong("time");
+        countDownTimer.cancel();
+        startTimer();
+
+        //Reiniciar os erros já existentes
+        sudokuView.setErrors(savedInstanceState.getInt("errors"));
+
+        //Reiniciar os pontos já existentes
+        sudokuView.setPoints(savedInstanceState.getInt("points"));
 
     }
 
