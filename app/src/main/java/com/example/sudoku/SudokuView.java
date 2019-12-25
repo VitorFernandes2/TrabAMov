@@ -116,9 +116,11 @@ public class SudokuView extends View {
                         paintMainNumbers.setColor(Color.RED);
                         canvas.drawText(""+n, x, y, paintMainNumbers);
                         paintMainNumbers.setColor(Color.rgb(0,0,128));
-                        board[r][c] = 0;
                         errors++;
                         tvErrors.setText(""+errors);
+
+                        board[r][c] = 0;
+                        this.postInvalidateDelayed(3000);
 
                     }else{
 
@@ -360,121 +362,18 @@ public class SudokuView extends View {
 
     private void invalidateButtons(){
 
-        if (!inAnotationsMode){
-            List<Integer> list = new ArrayList<>();
+        if (boardComp[selectedCelLin][selectedCelCol] != 0){
 
-            for (int j = 0; j < BOARD_SIZE; j++) {
+            bt1.setVisibility(View.INVISIBLE);
+            bt2.setVisibility(View.INVISIBLE);
+            bt3.setVisibility(View.INVISIBLE);
+            bt4.setVisibility(View.INVISIBLE);
+            bt5.setVisibility(View.INVISIBLE);
+            bt6.setVisibility(View.INVISIBLE);
+            bt7.setVisibility(View.INVISIBLE);
+            bt8.setVisibility(View.INVISIBLE);
+            bt9.setVisibility(View.INVISIBLE);
 
-                if (board[selectedCelLin][j] != 0){
-                    list.add(board[selectedCelLin][j]);
-                }
-                if (board[j][selectedCelCol] != 0){
-                    list.add(board[j][selectedCelCol]);
-                }
-
-            }
-
-            int j, i, iFim, jFim;
-            j = i = iFim = jFim = 0;
-
-            if (selectedCelLin >= 0 && selectedCelLin <= 2){
-
-                i = 0;
-                iFim = 2;
-
-            }
-            else if (selectedCelLin >= 3 && selectedCelLin <= 5){
-
-                i = 3;
-                iFim = 5;
-
-            }
-            else if(selectedCelLin >= 6 && selectedCelLin <= 8){
-
-                i = 6;
-                iFim = 8;
-
-            }
-
-            if (selectedCelCol >= 0 && selectedCelCol <= 2){
-
-                j = 0;
-                jFim = 2;
-
-            }
-            else if (selectedCelCol >= 3 && selectedCelCol <= 5){
-
-                j = 3;
-                jFim = 5;
-
-            }
-            else if(selectedCelCol >= 6 && selectedCelCol <= 8){
-
-                j = 6;
-                jFim = 8;
-
-            }
-
-            for (; i <= iFim; i++){
-                for (int j2 = j;j2 <= jFim; j2++){
-                    if (board[i][j2] != 0)
-                        list.add(board[i][j2]);
-                }
-            }
-
-            if (list.contains(1)){
-                bt1.setVisibility(View.INVISIBLE);
-            }else{
-                bt1.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(2)){
-                bt2.setVisibility(View.INVISIBLE);
-            }else{
-                bt2.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(3)){
-                bt3.setVisibility(View.INVISIBLE);
-            }else{
-                bt3.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(4)){
-                bt4.setVisibility(View.INVISIBLE);
-            }else{
-                bt4.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(5)){
-                bt5.setVisibility(View.INVISIBLE);
-            }else{
-                bt5.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(6)){
-                bt6.setVisibility(View.INVISIBLE);
-            }else{
-                bt6.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(7)){
-                bt7.setVisibility(View.INVISIBLE);
-            }else{
-                bt7.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(8)){
-                bt8.setVisibility(View.INVISIBLE);
-            }else{
-                bt8.setVisibility(View.VISIBLE);
-            }
-
-            if (list.contains(9)){
-                bt9.setVisibility(View.INVISIBLE);
-            }else{
-                bt9.setVisibility(View.VISIBLE);
-            }
         }else{
             bt1.setVisibility(View.VISIBLE);
             bt2.setVisibility(View.VISIBLE);
@@ -500,8 +399,10 @@ public class SudokuView extends View {
 
                         //Se estiver correto
                         if (Resolve(value, selectedCelCol, selectedCelLin)){
+
                             points++;
                             tvPoints.setText(""+points);
+
                         }
 
                         //Se tiver ganho
@@ -586,6 +487,7 @@ public class SudokuView extends View {
                     board[selectedCelLin][selectedCelCol] = value;
                     boardComp[selectedCelLin][selectedCelCol] = value;
                     hints--;
+                    invalidateButtons();
                     invalidate();
                 }
 
