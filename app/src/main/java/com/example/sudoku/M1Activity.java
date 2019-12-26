@@ -70,7 +70,69 @@ public class M1Activity extends AppCompatActivity {
                 break;
         }
 
-        gerar(difficulty);
+        ///////////////////////////////////////////////////////////////////
+        ////      Tratamento para quando vem de outro modo de jogo     ////
+        ///////////////////////////////////////////////////////////////////
+
+        String changeMode = getIntent().getExtras().getString("changeMode");
+
+        //Significa que vem de outro modo de jogo
+        if (changeMode != null){
+
+            sudokuView.setPoints(getIntent().getExtras().getInt("points"));
+            sudokuView.setErrors(getIntent().getExtras().getInt("errors"));
+
+            //Reiniciar a board
+            board[0] = getIntent().getExtras().getIntArray("boardLine1");
+            board[1] = getIntent().getExtras().getIntArray("boardLine2");
+            board[2] = getIntent().getExtras().getIntArray("boardLine3");
+            board[3] = getIntent().getExtras().getIntArray("boardLine4");
+            board[4] = getIntent().getExtras().getIntArray("boardLine5");
+            board[5] = getIntent().getExtras().getIntArray("boardLine6");
+            board[6] = getIntent().getExtras().getIntArray("boardLine7");
+            board[7] = getIntent().getExtras().getIntArray("boardLine8");
+            board[8] = getIntent().getExtras().getIntArray("boardLine9");
+
+            sudokuView.setBoard(board);
+
+            //Reiniciar o comparador
+            boardComp[0] = getIntent().getExtras().getIntArray("boardCompLine1");
+            boardComp[1] = getIntent().getExtras().getIntArray("boardCompLine2");
+            boardComp[2] = getIntent().getExtras().getIntArray("boardCompLine3");
+            boardComp[3] = getIntent().getExtras().getIntArray("boardCompLine4");
+            boardComp[4] = getIntent().getExtras().getIntArray("boardCompLine5");
+            boardComp[5] = getIntent().getExtras().getIntArray("boardCompLine6");
+            boardComp[6] = getIntent().getExtras().getIntArray("boardCompLine7");
+            boardComp[7] = getIntent().getExtras().getIntArray("boardCompLine8");
+            boardComp[8] = getIntent().getExtras().getIntArray("boardCompLine9");
+
+            sudokuView.setBoardComp(boardComp);
+
+            //guardar anotations
+            int[][][] map = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
+            for (int i = 0; i < BOARD_SIZE; i++) {
+
+                map[i][0] = getIntent().getExtras().getIntArray("anotationsV"+i+"L1");
+                map[i][1] = getIntent().getExtras().getIntArray("anotationsV"+i+"L2");
+                map[i][2] = getIntent().getExtras().getIntArray("anotationsV"+i+"L3");
+                map[i][3] = getIntent().getExtras().getIntArray("anotationsV"+i+"L4");
+                map[i][4] = getIntent().getExtras().getIntArray("anotationsV"+i+"L5");
+                map[i][5] = getIntent().getExtras().getIntArray("anotationsV"+i+"L6");
+                map[i][6] = getIntent().getExtras().getIntArray("anotationsV"+i+"L7");
+                map[i][7] = getIntent().getExtras().getIntArray("anotationsV"+i+"L8");
+                map[i][8] = getIntent().getExtras().getIntArray("anotationsV"+i+"L9");
+
+            }
+
+            sudokuView.setAnotations(map);
+            sudokuView.setSelectedCelCol(getIntent().getExtras().getInt("col"));
+            sudokuView.setSelectedCelLin(getIntent().getExtras().getInt("row"));
+
+        }else{ //Se for uma criação normal gera o tabuleiro
+
+            gerar(difficulty);
+
+        }
 
         startTimer();
 

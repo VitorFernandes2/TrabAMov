@@ -88,14 +88,23 @@ public class GameModeFragment extends Fragment {
                 builder.setItems(dificulties, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Intent intent;
+                        int value = 3;
                         switch (which) {
                             case 0: // Hard
+                                value = 7;
                                 break;
                             case 1: // Medium
+                                value = 5;
                                 break;
                             case 2: // Easy
+                                value = 3;
                                 break;
                         }
+
+                        intent = new Intent(getActivity(), M2Activity.class);
+                        intent.putExtra("difficulty", value);
+                        startActivity(intent);
                     }
                 });
 

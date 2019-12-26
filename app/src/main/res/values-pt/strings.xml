@@ -27,4 +27,7 @@
     <string name="DefeatMessage">Você perdeu! Melhor Sorte para a próxima!</string>
     <string name="thanks">Obrigado!</string>
     <string name="WinMessage">Parabéns, você ganhou!</string>
+    <string name="player1">Jogador 1</string>
+    <string name="player2">Jogador 2</string>
+    <string name="change_to_m1">Mudar para 1 jogador</string>
 </resources>
