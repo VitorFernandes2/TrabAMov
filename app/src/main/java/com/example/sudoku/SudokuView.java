@@ -425,7 +425,7 @@ public class SudokuView extends View {
                             AlertDialog alert = builder.create();
                             alert.show();
 
-                            // adicionar na json para o historico
+                            // adicionar no sharedpreferences o resultado e organiza
                             updatehistory();
                         }
 

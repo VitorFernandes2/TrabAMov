@@ -34,4 +34,6 @@
     <string name="statistics_result">Result:</string>
     <string name="resultsM1">Won in : m</string>
     <string name="resultspM1">Lost</string>
+    <string name="resultsM2">Won with : points</string>
+    <string name="WinMessageM2">Congratulations : have won!</string>
 </resources>

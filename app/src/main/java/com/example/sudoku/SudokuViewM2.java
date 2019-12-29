@@ -3,6 +3,7 @@ package com.example.sudoku;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -18,12 +19,15 @@ import androidx.appcompat.app.AlertDialog;
 import com.example.sudoku.player.Player;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import pt.isec.ans.sudokulibrary.Sudoku;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class SudokuViewM2 extends View {
 
@@ -493,9 +497,36 @@ public class SudokuViewM2 extends View {
                         //Se tiver ganho
                         if (result()){
 
+                            // calcula o vencedor
+                            String nome1 = players[0].getName();
+                            int point1 = players[0].getPoint();
+                            String nome2 = players[1].getName();
+                            int point2 = players[1].getPoint();
+                            String output; int vencedor;
+                            if(point1 > point2){
+                                String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                output = partsmsg[0] + nome1 + partsmsg[1];
+                                vencedor = 1;
+                            }else if (point1 < point2){
+                                String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                output = partsmsg[0] + nome2 + partsmsg[1];
+                                vencedor = 2;
+                            }else{ // se forem iguais
+                                String userid = tvPlayer.getText().toString();
+                                if(userid.equals(nome1)){
+                                    String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                    output = partsmsg[0] + nome1 + partsmsg[1];
+                                    vencedor = 1;
+                                } else {
+                                    String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                    output = partsmsg[0] + nome2 + partsmsg[1];
+                                    vencedor = 2;
+                                }
+                            }
+
                             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                             builder.setTitle(R.string.finished);
-                            builder.setMessage(R.string.WinMessage)
+                            builder.setMessage(output)
                                     .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                             Intent intent = new Intent(getContext(), MainActivity.class);
@@ -505,6 +536,8 @@ public class SudokuViewM2 extends View {
                             AlertDialog alert = builder.create();
                             alert.show();
 
+                            // adicionar no sharedpreferences o resultado e organiza
+                            updatehistory(vencedor);
                         }
 
                     }
@@ -515,6 +548,70 @@ public class SudokuViewM2 extends View {
 
         invalidateButtons();
         invalidate();
+
+    }
+
+    private void updatehistory(int vencedor){
+
+        String points,userid;
+        if(vencedor == 1){
+            points = Integer.toString(players[0].getPoint());
+            userid = players[0].getName();
+        }else{
+            points = Integer.toString(players[1].getPoint());
+            userid = players[1].getName();
+        }
+
+        JSONObject obj = new JSONObject();
+
+        String outdesc = getContext().getString(R.string.resultsM2);
+        String[] parts2 = outdesc.split(":");
+        outdesc = parts2[0] + points + parts2[1];
+
+        try {
+            obj.put("nome",userid);
+            obj.put("tipo","2P");
+            obj.put("desc", outdesc);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        addrestult(obj);
+
+        //prefs.edit().putString("result1",obj.toString()).apply();
+
+    }
+
+    private void addrestult(JSONObject obj){
+
+        SharedPreferences prefs = getContext().getSharedPreferences("results", Context.MODE_PRIVATE);
+
+        if(prefs.contains("result1")){
+
+            if(prefs.contains("result2")){
+
+                if(prefs.contains("result3")){
+                    prefs.edit().putString("result3",prefs.getString("result2","null")).apply();
+                    prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                    prefs.edit().putString("result1",obj.toString()).apply();
+                    return;
+                }else{
+                    prefs.edit().putString("result3",prefs.getString("result2","null")).apply();
+                    prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                    prefs.edit().putString("result1",obj.toString()).apply();
+                    return;
+                }
+
+            }else {
+                prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                prefs.edit().putString("result1",obj.toString()).apply();
+                return;
+            }
+
+        }else{
+            prefs.edit().putString("result1",obj.toString()).apply();
+            return;
+        }
 
     }
 

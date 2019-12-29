@@ -35,4 +35,6 @@
     <string name="statistics_result">Resultado</string>
     <string name="resultspM1">Perdeu</string>
     <string name="resultsM1">Ganhou em : min</string>
+    <string name="resultsM2">Ganhou com : pontos</string>
+    <string name="WinMessageM2">Parabéns : ganhou!</string>
 </resources>
