@@ -3,6 +3,7 @@ package com.example.sudoku;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -15,11 +16,14 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
 import pt.isec.ans.sudokulibrary.Sudoku;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class SudokuView extends View {
 
@@ -36,12 +40,12 @@ public class SudokuView extends View {
     private int errors = 0;
     private int hints = 3;
 
-    private TextView tvErrors, tvPoints;
+    private TextView tvErrors, tvPoints, tvTime;
     private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9;
 
     public SudokuView(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
                       Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
-                      TextView tvPoints) {
+                      TextView tvPoints, TextView tvtimer) {
         super(context);
         inAnotationsMode = false;
         this.bt1 = bt1;
@@ -55,6 +59,7 @@ public class SudokuView extends View {
         this.bt9 = bt9;
         this.tvErrors = tvErrors;
         this.tvPoints = tvPoints;
+        this.tvTime = tvtimer;
         createPaints();
     }
 
@@ -420,6 +425,8 @@ public class SudokuView extends View {
                             AlertDialog alert = builder.create();
                             alert.show();
 
+                            // adicionar na json para o historico
+                            updatehistory();
                         }
 
                     }
@@ -430,6 +437,73 @@ public class SudokuView extends View {
 
         invalidateButtons();
         invalidate();
+
+    }
+
+    private void updatehistory(){
+
+        String time = tvTime.getText().toString();
+
+        // inverter o tempo
+        String[] parts = time.split(":");
+        parts[0] = Integer.toString(9 - Integer.parseInt(parts[0]));
+        parts[1] = Integer.toString(60 - Integer.parseInt(parts[1]));
+        time = parts[0] + ":" + parts[1];
+
+        SharedPreferences sharedPref = getContext().getSharedPreferences("user_id", MODE_PRIVATE);
+        String userId = sharedPref.getString("user_id", "Username");
+
+        SharedPreferences prefs = getContext().getSharedPreferences("results", Context.MODE_PRIVATE);
+        JSONObject obj = new JSONObject();
+
+        String outdesc = getContext().getString(R.string.resultsM1);
+        String[] parts2 = outdesc.split(":");
+        outdesc = parts2[0] + time + parts2[1];
+
+        try {
+            obj.put("nome",userId);
+            obj.put("tipo","SP");
+            obj.put("desc", outdesc);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        addrestult(obj);
+
+        //prefs.edit().putString("result1",obj.toString()).apply();
+
+    }
+
+    private void addrestult(JSONObject obj){
+
+        SharedPreferences prefs = getContext().getSharedPreferences("results", Context.MODE_PRIVATE);
+
+        if(prefs.contains("result1")){
+
+            if(prefs.contains("result2")){
+
+                if(prefs.contains("result3")){
+                    prefs.edit().putString("result3",prefs.getString("result2","null")).apply();
+                    prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                    prefs.edit().putString("result1",obj.toString()).apply();
+                    return;
+                }else{
+                    prefs.edit().putString("result3",prefs.getString("result2","null")).apply();
+                    prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                    prefs.edit().putString("result1",obj.toString()).apply();
+                    return;
+                }
+
+            }else {
+                prefs.edit().putString("result2",prefs.getString("result1","null")).apply();
+                prefs.edit().putString("result1",obj.toString()).apply();
+                return;
+            }
+
+        }else{
+            prefs.edit().putString("result1",obj.toString()).apply();
+            return;
+        }
 
     }
 

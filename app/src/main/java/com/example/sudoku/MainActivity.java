@@ -15,6 +15,9 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity {
 
     static SharedPreferences sharedPref;
@@ -24,6 +27,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         sharedPref = getSharedPreferences("user_id", MODE_PRIVATE);
+
+        // Removo tod o historico
+        /*SharedPreferences prefs = getSharedPreferences("results", MODE_PRIVATE);
+        prefs.edit().remove("result1").commit();
+        prefs.edit().remove("result3").commit();
+        prefs.edit().remove("result2").commit();*/
+
         //Fullscreen mode with hidden title bar
 
         requestWindowFeature(Window.FEATURE_NO_TITLE); //will hide the title

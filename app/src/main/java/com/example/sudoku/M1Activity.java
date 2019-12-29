@@ -48,13 +48,14 @@ public class M1Activity extends AppCompatActivity {
 
         tvErrors = findViewById(R.id.textView6);
         tvPoints = findViewById(R.id.textView5);
+        tvTimer = findViewById(R.id.tvTimer);
         sudokuView = new SudokuView(this, bt1, bt2, bt3, bt4, bt5, bt6, bt7,
-                bt8, bt9, tvErrors, tvPoints);
+                bt8, bt9, tvErrors, tvPoints,tvTimer);
         flSudoku.addView(sudokuView);
         createButtonsListener();
 
 
-        tvTimer = findViewById(R.id.tvTimer);
+
 
         int difficulty = getIntent().getIntExtra("difficulty", 4);
 

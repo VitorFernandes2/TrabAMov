@@ -30,4 +30,9 @@
     <string name="player1">Jogador 1</string>
     <string name="player2">Jogador 2</string>
     <string name="change_to_m1">Mudar para 1 jogador</string>
+    <string name="statistics_op">Oponente:</string>
+    <string name="statistics_type">Modo de Jogo:</string>
+    <string name="statistics_result">Resultado</string>
+    <string name="resultspM1">Perdeu</string>
+    <string name="resultsM1">Ganhou em : min</string>
 </resources>
