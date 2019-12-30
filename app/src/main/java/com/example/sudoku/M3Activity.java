@@ -1,18 +1,28 @@
 package com.example.sudoku;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.format.Formatter;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.sudoku.player.Player;
 
@@ -20,12 +30,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Enumeration;
+
 import pt.isec.ans.sudokulibrary.Sudoku;
 
 public class M3Activity extends AppCompatActivity {
 
     private static final int BOARD_SIZE = 9;
-
     private Button btAnotations;
     private long timeInMs;
     private SudokuViewM3 sudokuView;
@@ -35,6 +56,16 @@ public class M3Activity extends AppCompatActivity {
     private int[][] boardComp = new int[BOARD_SIZE][BOARD_SIZE];
     private int[][][] anotations = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
     int difficulty;
+    boolean server;
+
+    ProgressDialog pd = null;
+    ServerSocket serverSocket=null;
+    Socket socketGame = null;
+    Handler procMsg = null;
+    BufferedReader input;
+    PrintWriter output;
+    private int PORT = 8899;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,21 +77,26 @@ public class M3Activity extends AppCompatActivity {
         final FrameLayout flSudoku = findViewById(R.id.flSudokuM2);
         createButtons();
 
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            Toast.makeText(this, R.string.noint, Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        server = getIntent().getBooleanExtra("isserver",false);
+
         tvErrors = findViewById(R.id.textView6M2);
         tvPoints = findViewById(R.id.textView5M2);
         tvPlayer = findViewById(R.id.tvPlayerNameM2);
         tvTimer = findViewById(R.id.tvTimerM2);
         sudokuView = new SudokuViewM3(this, bt1, bt2, bt3, bt4, bt5, bt6, bt7,
-                bt8, bt9, tvErrors, tvPoints, tvPlayer, tvTimer);
+                bt8, bt9, tvErrors, tvPoints, tvPlayer, tvTimer, server);
         flSudoku.addView(sudokuView);
         createButtonsListener();
         difficulty = getIntent().getIntExtra("difficulty", 4);
-
-        //test
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.cDificulties);
-
+        
 
         switch (difficulty){
             case 7:
@@ -76,26 +112,215 @@ public class M3Activity extends AppCompatActivity {
 
         gerar(difficulty);
 
+        procMsg = new Handler();
+        /*if(server == true){
+            server();
+
+        }else{
+            clientDlg();
+        }*/
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(server == true){
+            server();
+
+        }else{
+            clientDlg();
+        }
+    }
+
+    void clientDlg() {
+        final EditText edtIP = new EditText(this);
+        final android.app.AlertDialog ad = new AlertDialog.Builder(this).setTitle("Sudoku Client")
+                .setMessage("Server IP").setView(edtIP)
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        client(edtIP.getText().toString(), PORT);
+                    }
+                }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        finish();
+                    }
+                }).create();
+
+        edtIP.setMaxLines(1);
+        edtIP.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (edtIP.getText().toString().isEmpty())
+                    return false;
+                client(edtIP.getText().toString(), PORT);
+                ad.dismiss();
+                return true;
+            }
+        });
+        edtIP.setText("10.0.2.2");
+
+        ad.show();
+    }
+
+    void client(final String strIP, final int Port) {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.d("Sudoku", "Connecting to the server  " + strIP);
+                    socketGame = new Socket(strIP, Port);
+                } catch (Exception e) {
+                    socketGame = null;
+                }
+                if (socketGame == null) {
+                    procMsg.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            finish();
+                        }
+                    });
+                    return;
+                }
+                commThread.start();
+            }
+        });
+        t.start();
+    }
+
+    void server() {
+        WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress()); // get ip
+        pd = new ProgressDialog(this);
+        pd.setMessage(getString(R.string.serverdlg_msg) + "\n(IP: " + ip
+                + ")");
+        pd.setTitle(R.string.serverdlg_title);
+        pd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                finish();
+                if (serverSocket!=null) {
+                    try {
+                        serverSocket.close();
+                    } catch (IOException e) {
+                    }
+                    serverSocket=null;
+                }
+
+            }
+        });
+        pd.show();
+
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    serverSocket = new ServerSocket(PORT);
+                    socketGame = serverSocket.accept();
+                    serverSocket.close();
+                    serverSocket=null;
+                    commThread.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    socketGame = null;
+                }
+                procMsg.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        pd.dismiss();
+                        if (socketGame == null)
+                            Log.d("Sudoku", "was finished (M3 - line 234)");
+                            finish();
+                    }
+                });
+            }
+        });
+        t.start();
+    }
+
+    Thread commThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try {
+                input = new BufferedReader(new InputStreamReader(
+                        socketGame.getInputStream()));
+                output = new PrintWriter(socketGame.getOutputStream());
+                while (!Thread.currentThread().isInterrupted()) {
+                    String read = input.readLine();
+                    final int move = Integer.parseInt(read);
+                    Log.d("Sudoku", "Received: " + move);
+                    procMsg.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            moveOtherPlayer(move);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                procMsg.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                        Toast.makeText(getApplicationContext(),
+                                R.string.game_finished, Toast.LENGTH_LONG)
+                                .show();
+                        changetoM1();
+                    }
+                });
+            }
+        }
+    });
+
+    protected void onPause() {
+        super.onPause();
+        try {
+            commThread.interrupt();
+            if (socketGame != null)
+                socketGame.close();
+            if (output != null)
+                output.close();
+            if (input != null)
+                input.close();
+        } catch (Exception e) {
+        }
+        input = null;
+        output = null;
+        socketGame = null;
+    };
+
+    private void moveOtherPlayer(int mov){
+
     }
 
     private void gerar(int level){
 
-        String strJson = Sudoku.generate(level);
-        Log.e("Sudoku", "Json: " + strJson);
+        if(server == true) {
 
-        try{
-            JSONObject json = new JSONObject(strJson);
+            String strJson = Sudoku.generate(level);
+            Log.e("Sudoku", "Json: " + strJson);
 
-            if (json.optInt("result",0) == 1){
+            try {
+                JSONObject json = new JSONObject(strJson);
 
-                JSONArray arrayJson = json.getJSONArray("board");
-                int [][] array = convert(arrayJson);
-                sudokuView.setBoard(array);
+                if (json.optInt("result", 0) == 1) {
 
+                    JSONArray arrayJson = json.getJSONArray("board");
+                    int[][] array = convert(arrayJson);
+                    sudokuView.setBoard(array);
+
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+        } else{
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+            int[][] array = new int[BOARD_SIZE][BOARD_SIZE];
+            sudokuView.setBoard(array);
+
         }
 
     }
@@ -122,6 +347,67 @@ public class M3Activity extends AppCompatActivity {
         }
 
         return array;
+
+    }
+
+
+    private void changetoM1(){
+
+        Intent intent = new Intent(M3Activity.this, M1Activity.class);
+
+        intent.putExtra("changeMode", "changeMode");
+        intent.putExtra("difficulty", difficulty);
+
+        board = sudokuView.getBoard();
+        intent.putExtra("boardLine1", board[0]);
+        intent.putExtra("boardLine2", board[1]);
+        intent.putExtra("boardLine3", board[2]);
+        intent.putExtra("boardLine4", board[3]);
+        intent.putExtra("boardLine5", board[4]);
+        intent.putExtra("boardLine6", board[5]);
+        intent.putExtra("boardLine7", board[6]);
+        intent.putExtra("boardLine8", board[7]);
+        intent.putExtra("boardLine9", board[8]);
+
+        boardComp = sudokuView.getBoardComp();
+        intent.putExtra("boardCompLine1", boardComp[0]);
+        intent.putExtra("boardCompLine2", boardComp[1]);
+        intent.putExtra("boardCompLine3", boardComp[2]);
+        intent.putExtra("boardCompLine4", boardComp[3]);
+        intent.putExtra("boardCompLine5", boardComp[4]);
+        intent.putExtra("boardCompLine6", boardComp[5]);
+        intent.putExtra("boardCompLine7", boardComp[6]);
+        intent.putExtra("boardCompLine8", boardComp[7]);
+        intent.putExtra("boardCompLine9", boardComp[8]);
+
+        intent.putExtra("hints", sudokuView.getHints());
+        intent.putExtra("AnotationsMode", sudokuView.isInAnotationsMode());
+
+        //guardar anotations
+        int[][][] map = sudokuView.getAnotations();
+        for (int i = 0; i < BOARD_SIZE; i++) {
+
+            intent.putExtra("anotationsV"+i+"L1", map[i][0]);
+            intent.putExtra("anotationsV"+i+"L2", map[i][1]);
+            intent.putExtra("anotationsV"+i+"L3", map[i][2]);
+            intent.putExtra("anotationsV"+i+"L4", map[i][3]);
+            intent.putExtra("anotationsV"+i+"L5", map[i][4]);
+            intent.putExtra("anotationsV"+i+"L6", map[i][5]);
+            intent.putExtra("anotationsV"+i+"L7", map[i][6]);
+            intent.putExtra("anotationsV"+i+"L8", map[i][7]);
+            intent.putExtra("anotationsV"+i+"L9", map[i][8]);
+
+        }
+
+        intent.putExtra("col", sudokuView.getSelectedCelCol());
+        intent.putExtra("row", sudokuView.getSelectedCelLin());
+
+        Player[] players = sudokuView.getPlayers();
+
+        intent.putExtra("points", players[0].getPoint() + players[1].getPoint());
+        intent.putExtra("errors", players[0].getErrors() + players[1].getErrors());
+
+        startActivity(intent);
 
     }
 
@@ -211,7 +497,7 @@ public class M3Activity extends AppCompatActivity {
             }
         });
 
-        btChangeMode.setOnClickListener(new View.OnClickListener() {
+        /*btChangeMode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Ao clicar mudar de vista
@@ -273,7 +559,7 @@ public class M3Activity extends AppCompatActivity {
                 startActivity(intent);
 
             }
-        });
+        });*/
 
     }
 
@@ -291,7 +577,7 @@ public class M3Activity extends AppCompatActivity {
         btAnotations = findViewById(R.id.btAnotationsM2);
         btHint = findViewById(R.id.btHintsM2);
         btApaga = findViewById(R.id.btDeleteM2);
-        btChangeMode = findViewById(R.id.btChangeM2ToM1);
+        //btChangeMode = findViewById(R.id.btChangeM2ToM1);
 
     }
 
@@ -439,4 +725,6 @@ public class M3Activity extends AppCompatActivity {
         sudokuView.restartGame();
 
     }
+
+
 }

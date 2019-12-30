@@ -38,4 +38,9 @@
     <string name="WinMessageM2">Congratulations : have won!</string>
     <string name="mpHost">Host</string>
     <string name="mpJoin">Join</string>
+    <string name="serverdlg_msg">Waiting for a Client...</string>
+    <string name="serverdlg_title">Sudoku Server</string>
+    <string name="game_finished">The game was finished</string>
+    <string name="mpTurno">Turn:</string>
+    <string name="noint">No internet Connection</string>
 </resources>

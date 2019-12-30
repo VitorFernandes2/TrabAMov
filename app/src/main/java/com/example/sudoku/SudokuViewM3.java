@@ -1,5 +1,7 @@
 package com.example.sudoku;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,11 +10,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -22,6 +26,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Enumeration;
+
 import pt.isec.ans.sudokulibrary.Sudoku;
 
 public class SudokuViewM3 extends View {
@@ -30,6 +46,7 @@ public class SudokuViewM3 extends View {
     private Player[] players = new Player[2];
     private CountDownTimer countDownTimer;
     private int playerIndex = 0;
+
 
     private boolean inAnotationsMode;
     Paint paintMainLines, paintSubLines, paintMainNumbers, paintSmallNumbers;
@@ -45,9 +62,11 @@ public class SudokuViewM3 extends View {
     private TextView tvErrors, tvPoints, tvPlayer, tvTimer;
     private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9;
 
+    private boolean server;
+
     public SudokuViewM3(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
                         Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
-                        TextView tvPoints, TextView tvPlayer, TextView tvTimer) {
+                        TextView tvPoints, TextView tvPlayer, TextView tvTimer, boolean isserver) {
         super(context);
         inAnotationsMode = false;
 
@@ -65,6 +84,8 @@ public class SudokuViewM3 extends View {
         this.tvPoints = tvPoints;
         this.tvPlayer = tvPlayer;
         this.tvTimer = tvTimer;
+
+        this.server = isserver;
 
         startInfo();
         createPaints();
@@ -743,5 +764,6 @@ public class SudokuViewM3 extends View {
         startTimer();
 
     }
+
 
 }

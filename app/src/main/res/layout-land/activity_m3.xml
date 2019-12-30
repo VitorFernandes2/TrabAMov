@@ -245,25 +245,21 @@
         android:id="@+id/tvPlayerNameM2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:text="@string/player1"
         app:layout_constraintBottom_toTopOf="@+id/textViewM2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btChangeM2ToM1"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/flSudokuM2"
+        app:layout_constraintStart_toEndOf="@+id/textView7"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/btChangeM2ToM1"
-        style="@style/WhiteTextButtonLand"
+    <TextView
+        android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/small_buttton"
-        android:text="@string/change_to_m1"
-        app:layout_constraintBottom_toBottomOf="@+id/tvPlayerNameM2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/tvPlayerNameM2"
-        app:layout_constraintTop_toTopOf="@+id/tvPlayerNameM2" />
+        android:layout_marginStart="16dp"
+        android:text="@string/mpTurno"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/textViewM2"
+        app:layout_constraintStart_toEndOf="@+id/flSudokuM2"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

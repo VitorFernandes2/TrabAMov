@@ -39,4 +39,9 @@
     <string name="WinMessageM2">Parabéns : ganhou!</string>
     <string name="mpHost">Hospedar</string>
     <string name="mpJoin">Entrar</string>
+    <string name="serverdlg_msg">A espera de um \"Cliente\"</string>
+    <string name="serverdlg_title">Servidor Sudoku</string>
+    <string name="game_finished">O jogo foi finalizado</string>
+    <string name="mpTurno">Turno:</string>
+    <string name="noint">Não há ligação à internet</string>
 </resources>

@@ -53,6 +53,7 @@ public class MPmode extends Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent;
                         int value = 3;
+                        boolean sed = true;
                         switch (which) {
                             case 0: // Hard
                                 value = 7;
@@ -67,6 +68,7 @@ public class MPmode extends Fragment {
 
                         intent = new Intent(getActivity(), M3Activity.class);
                         intent.putExtra("difficulty", value);
+                        intent.putExtra("isserver",sed);
                         startActivity(intent);
 
                     }
@@ -84,10 +86,12 @@ public class MPmode extends Fragment {
             public void onClick(View v) {
 
                 int value=3;
+                boolean sed = false;
                 Intent intent;
 
                 intent = new Intent(getActivity(), M3Activity.class);
                 intent.putExtra("difficulty", value);
+                intent.putExtra("isserver",sed);
                 startActivity(intent);
 
             }
