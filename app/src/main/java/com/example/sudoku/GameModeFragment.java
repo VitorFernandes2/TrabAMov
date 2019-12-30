@@ -129,15 +129,18 @@ public class GameModeFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent intent;
-                        int value = 3;
+                        int value = 0;
                         switch (which) {
                             case 0: // Host
-                                value = 7;
-                                break;
-                            case 1: // Join
                                 value = 5;
                                 break;
+                            case 1: // Join
+                                value = 3;
+                                break;
                         }
+                        intent = new Intent(getActivity(), M3Activity.class);
+                        intent.putExtra("difficulty", value);
+                        startActivity(intent);
                     }
                 });
 
