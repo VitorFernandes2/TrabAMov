@@ -1,6 +1,7 @@
 package com.example.sudoku;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProviders;
 
 import android.content.DialogInterface;
@@ -15,6 +16,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import com.example.sudoku.ui.MPmode.MPmode;
+import com.example.sudoku.ui.credits.CreditsFragment;
 
 public class GameModeFragment extends Fragment {
 
@@ -120,33 +124,16 @@ public class GameModeFragment extends Fragment {
             public void onClick(View v) {
                 //Show dialogue
                 // setup the alert builder
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle(R.string.cDificulties);
 
-                // add a list
-                String[] dificulties = {getString(R.string.mpHost), getString(R.string.mpJoin)};
-                builder.setItems(dificulties, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent;
-                        int value = 0;
-                        switch (which) {
-                            case 0: // Host
-                                value = 5;
-                                break;
-                            case 1: // Join
-                                value = 3;
-                                break;
-                        }
-                        intent = new Intent(getActivity(), M3Activity.class);
-                        intent.putExtra("difficulty", value);
-                        startActivity(intent);
-                    }
-                });
+                MPmode nCreditsFragment = new MPmode();
+                assert getFragmentManager() != null;
+                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
+                        android.R.anim.fade_out);
+                fragmentTransaction.replace(R.id.nav_host_fragment, nCreditsFragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
 
-                // create and show the alert dialog
-                AlertDialog dialog = builder.create();
-                dialog.show();
             }
         });
 

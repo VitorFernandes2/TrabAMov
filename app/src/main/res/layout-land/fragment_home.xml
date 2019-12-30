@@ -18,13 +18,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            app:layout_constraintBottom_toTopOf="@+id/btnPlay"
+            app:layout_constraintBottom_toTopOf="@+id/btnhost"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/btnPlay"
+            android:id="@+id/btnhost"
             style="@style/WhiteTextButtonLand"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -33,14 +33,14 @@
             android:background="@drawable/normal_button_home"
             android:text="@string/play"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btnCredits"
+            app:layout_constraintEnd_toStartOf="@+id/btnjoin"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/btnCredits"
+            android:id="@+id/btnjoin"
             style="@style/WhiteTextButtonLand"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -48,12 +48,12 @@
             android:layout_marginRight="20sp"
             android:background="@drawable/normal_button_home"
             android:text="@string/credits"
-            app:layout_constraintBottom_toBottomOf="@+id/btnPlay"
+            app:layout_constraintBottom_toBottomOf="@+id/btnhost"
             app:layout_constraintEnd_toStartOf="@+id/btnExit"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@+id/btnPlay"
-            app:layout_constraintTop_toTopOf="@+id/btnPlay" />
+            app:layout_constraintStart_toEndOf="@+id/btnhost"
+            app:layout_constraintTop_toTopOf="@+id/btnhost" />
 
         <Button
             android:id="@+id/btnExit"
@@ -64,11 +64,11 @@
             android:layout_marginRight="20sp"
             android:background="@drawable/normal_button_home"
             android:text="@string/exit"
-            app:layout_constraintBottom_toBottomOf="@+id/btnCredits"
+            app:layout_constraintBottom_toBottomOf="@+id/btnjoin"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@+id/btnCredits"
-            app:layout_constraintTop_toTopOf="@+id/btnCredits" />
+            app:layout_constraintStart_toEndOf="@+id/btnjoin"
+            app:layout_constraintTop_toTopOf="@+id/btnjoin" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </RelativeLayout>

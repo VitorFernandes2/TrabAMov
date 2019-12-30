@@ -14,11 +14,11 @@
 
         <TextView
             android:id="@+id/textView1"
+            style="@style/TitleTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            style="@style/TitleTextView"
-            android:layout_marginTop="60sp"/>
+            android:layout_marginTop="60sp"
+            android:text="@string/multiplayer" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,27 +29,21 @@
 
             <Button
                 android:id="@+id/btnhost"
+                style="@style/WhiteTextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/play"
+                android:layout_marginBottom="15sp"
                 android:background="@drawable/normal_button_home"
-                style="@style/WhiteTextButton"
-                android:layout_marginBottom="15sp"/>
+                android:text="@string/mpHost" />
+
             <Button
                 android:id="@+id/btnjoin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/credits"
-                android:background="@drawable/normal_button_home"
                 style="@style/WhiteTextButton"
-                android:layout_marginBottom="15sp"/>
-            <Button
-                android:id="@+id/btnExit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/exit"
+                android:layout_marginBottom="15sp"
                 android:background="@drawable/normal_button_home"
-                style="@style/RedTextButton"/>
+                android:text="@string/mpJoin" />
 
         </LinearLayout>
 
