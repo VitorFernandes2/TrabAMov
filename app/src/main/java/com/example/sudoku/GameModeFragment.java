@@ -124,16 +124,18 @@ public class GameModeFragment extends Fragment {
                 builder.setTitle(R.string.cDificulties);
 
                 // add a list
-                String[] dificulties = {getString(R.string.hard), getString(R.string.medium), getString(R.string.easy)};
+                String[] dificulties = {getString(R.string.mpHost), getString(R.string.mpJoin)};
                 builder.setItems(dificulties, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Intent intent;
+                        int value = 3;
                         switch (which) {
-                            case 0: // Hard
+                            case 0: // Host
+                                value = 7;
                                 break;
-                            case 1: // Medium
-                                break;
-                            case 2: // Easy
+                            case 1: // Join
+                                value = 5;
                                 break;
                         }
                     }

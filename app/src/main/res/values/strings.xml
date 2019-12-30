@@ -36,4 +36,6 @@
     <string name="resultspM1">Lost</string>
     <string name="resultsM2">Won with : points</string>
     <string name="WinMessageM2">Congratulations : have won!</string>
+    <string name="mpHost">Host</string>
+    <string name="mpJoin">Join</string>
 </resources>
