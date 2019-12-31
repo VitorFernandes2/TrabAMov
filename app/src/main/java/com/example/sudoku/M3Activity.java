@@ -9,6 +9,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.icu.text.IDNA;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
@@ -18,6 +20,7 @@ import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -66,6 +69,8 @@ public class M3Activity extends AppCompatActivity {
     PrintWriter output;
     private int PORT = 8899;
 
+    private int[][] boardbackup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +90,7 @@ public class M3Activity extends AppCompatActivity {
             return;
         }
 
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         server = getIntent().getBooleanExtra("isserver",false);
 
         tvErrors = findViewById(R.id.textView6M2);
@@ -96,7 +102,7 @@ public class M3Activity extends AppCompatActivity {
         flSudoku.addView(sudokuView);
         createButtonsListener();
         difficulty = getIntent().getIntExtra("difficulty", 4);
-        
+
 
         switch (difficulty){
             case 7:
@@ -231,14 +237,16 @@ public class M3Activity extends AppCompatActivity {
                     @Override
                     public void run() {
                         pd.dismiss();
-                        if (socketGame == null)
+                        if (socketGame == null) {
                             Log.d("Sudoku", "was finished (M3 - line 234)");
                             finish();
+                        }
                     }
                 });
             }
         });
         t.start();
+
     }
 
     Thread commThread = new Thread(new Runnable() {
@@ -248,18 +256,26 @@ public class M3Activity extends AppCompatActivity {
                 input = new BufferedReader(new InputStreamReader(
                         socketGame.getInputStream()));
                 output = new PrintWriter(socketGame.getOutputStream());
+                if(server == false){
+                    clientstartermsg(output);
+                }
+
                 while (!Thread.currentThread().isInterrupted()) {
+                    Log.d("ServerINFO", "antes do readline");
                     String read = input.readLine();
-                    final int move = Integer.parseInt(read);
-                    Log.d("Sudoku", "Received: " + move);
+                    Log.d("ServerINFO", "depois do readline" + read);
+                    final JSONObject jo = new JSONObject(read);
+                    Log.d("ServerINFO", "Received: " + jo);
                     procMsg.post(new Runnable() {
                         @Override
                         public void run() {
-                            moveOtherPlayer(move);
+                            precessreceiveinfo(jo);
                         }
                     });
+
                 }
             } catch (Exception e) {
+                Log.d("ServerINFO", "exeption: " + e.toString());
                 procMsg.post(new Runnable() {
                     @Override
                     public void run() {
@@ -274,8 +290,29 @@ public class M3Activity extends AppCompatActivity {
         }
     });
 
+    private void clientstartermsg(PrintWriter output){
+
+        JSONObject praenv = new JSONObject();
+        SharedPreferences sharedPref = getSharedPreferences("user_id", MODE_PRIVATE);
+        String userId = sharedPref.getString("user_id", "Username");
+
+        try {
+            praenv.put("acao",1);
+            praenv.put("extra", userId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("sudoku", "Sending begening client msg");
+        output.println(praenv.toString());
+        output.flush();
+
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
+        Log.d("ServerINFO", "Server: on pause lançado");
         try {
             commThread.interrupt();
             if (socketGame != null)
@@ -291,7 +328,109 @@ public class M3Activity extends AppCompatActivity {
         socketGame = null;
     };
 
-    private void moveOtherPlayer(int mov){
+    private void precessreceiveinfo(JSONObject mov){
+
+        /*
+        Layout do json a enviar/receber:
+        int acao -> define o tipo de ação
+        int val -> define um valor a meter
+        int posx -> define a posicao x
+        int posy -> define a posica y
+        string extra -> informação extra
+        */
+
+        int acao = 0;
+        try {
+            acao = mov.getInt("acao");
+            //val = mov.getInt("val");
+            //posx = mov.getInt("posx");
+            //posy = mov.getInt("posy");
+            //extra = mov.getString("extra");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(acao == 1){ // mensagem inical de login de user
+            if(server == true) { // confere se é servidor
+
+
+                Log.d("Sudoku", "Recebi comando 1" );
+                final JSONObject praenv = new JSONObject();
+                String out = Integer.toString(boardbackup[0][0]);
+
+                for (int i = 0; i < BOARD_SIZE; i++){
+
+                    for(int j = 0; j< BOARD_SIZE; j++){
+                        if(!(i == 0 && j == 0))
+                            out += Integer.toString(boardbackup[i][j]);
+                    }
+                }
+
+                try {
+                    praenv.put("acao",3);
+                    praenv.put("extra", out);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("sudokuINFO", "Server: sending table info to client");
+                            output.println(praenv.toString());
+                            output.flush();
+                        } catch (Exception e) {
+                            Log.d("sudokuINFO", "Server: sending table info to client exept");
+                        }
+                    }
+                });
+                t.start();
+
+
+            }
+        }
+
+        if(acao == 3){ // recebe o tabuleiro no inicio
+
+            Log.d("Sudoku", "Recebi comando 3" );
+            int[][] array = null;
+            try {
+
+                String extra2 = mov.getString("extra");
+                array = convertStringArray(extra2);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            //int[][] array = convertStringArray(extra);
+
+            sudokuView.setBoard(array);
+
+        }
+
+
+    }
+
+    private  int[][] convertStringArray(String val){
+
+        String[] vals = val.split("(?!^)");
+
+        int[][] out = new int[BOARD_SIZE][BOARD_SIZE];
+
+        for (int i = 0; i < BOARD_SIZE; i++){
+
+            for(int j = 0; j< BOARD_SIZE; j++){
+
+                int pos = (i*BOARD_SIZE)+j;
+                out[i][j] = Integer.parseInt(vals[pos]);
+            }
+
+        }
+
+        return out;
 
     }
 
@@ -309,6 +448,7 @@ public class M3Activity extends AppCompatActivity {
 
                     JSONArray arrayJson = json.getJSONArray("board");
                     int[][] array = convert(arrayJson);
+                    boardbackup = array; // backup da border original
                     sudokuView.setBoard(array);
 
                 }
@@ -497,70 +637,6 @@ public class M3Activity extends AppCompatActivity {
             }
         });
 
-        /*btChangeMode.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Ao clicar mudar de vista
-
-                Intent intent = new Intent(M3Activity.this, M1Activity.class);
-
-                intent.putExtra("changeMode", "changeMode");
-                intent.putExtra("difficulty", difficulty);
-
-                board = sudokuView.getBoard();
-                intent.putExtra("boardLine1", board[0]);
-                intent.putExtra("boardLine2", board[1]);
-                intent.putExtra("boardLine3", board[2]);
-                intent.putExtra("boardLine4", board[3]);
-                intent.putExtra("boardLine5", board[4]);
-                intent.putExtra("boardLine6", board[5]);
-                intent.putExtra("boardLine7", board[6]);
-                intent.putExtra("boardLine8", board[7]);
-                intent.putExtra("boardLine9", board[8]);
-
-                boardComp = sudokuView.getBoardComp();
-                intent.putExtra("boardCompLine1", boardComp[0]);
-                intent.putExtra("boardCompLine2", boardComp[1]);
-                intent.putExtra("boardCompLine3", boardComp[2]);
-                intent.putExtra("boardCompLine4", boardComp[3]);
-                intent.putExtra("boardCompLine5", boardComp[4]);
-                intent.putExtra("boardCompLine6", boardComp[5]);
-                intent.putExtra("boardCompLine7", boardComp[6]);
-                intent.putExtra("boardCompLine8", boardComp[7]);
-                intent.putExtra("boardCompLine9", boardComp[8]);
-
-                intent.putExtra("hints", sudokuView.getHints());
-                intent.putExtra("AnotationsMode", sudokuView.isInAnotationsMode());
-
-                //guardar anotations
-                int[][][] map = sudokuView.getAnotations();
-                for (int i = 0; i < BOARD_SIZE; i++) {
-
-                    intent.putExtra("anotationsV"+i+"L1", map[i][0]);
-                    intent.putExtra("anotationsV"+i+"L2", map[i][1]);
-                    intent.putExtra("anotationsV"+i+"L3", map[i][2]);
-                    intent.putExtra("anotationsV"+i+"L4", map[i][3]);
-                    intent.putExtra("anotationsV"+i+"L5", map[i][4]);
-                    intent.putExtra("anotationsV"+i+"L6", map[i][5]);
-                    intent.putExtra("anotationsV"+i+"L7", map[i][6]);
-                    intent.putExtra("anotationsV"+i+"L8", map[i][7]);
-                    intent.putExtra("anotationsV"+i+"L9", map[i][8]);
-
-                }
-
-                intent.putExtra("col", sudokuView.getSelectedCelCol());
-                intent.putExtra("row", sudokuView.getSelectedCelLin());
-
-                Player[] players = sudokuView.getPlayers();
-
-                intent.putExtra("points", players[0].getPoint() + players[1].getPoint());
-                intent.putExtra("errors", players[0].getErrors() + players[1].getErrors());
-
-                startActivity(intent);
-
-            }
-        });*/
-
     }
 
     private void createButtons(){
@@ -577,11 +653,10 @@ public class M3Activity extends AppCompatActivity {
         btAnotations = findViewById(R.id.btAnotationsM2);
         btHint = findViewById(R.id.btHintsM2);
         btApaga = findViewById(R.id.btDeleteM2);
-        //btChangeMode = findViewById(R.id.btChangeM2ToM1);
 
     }
 
-    @Override
+    /*@Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
@@ -724,7 +799,7 @@ public class M3Activity extends AppCompatActivity {
         //Mete os dados corretos no ecrã
         sudokuView.restartGame();
 
-    }
+    }*/
 
 
 }

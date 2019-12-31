@@ -80,8 +80,8 @@ public class MPmode extends Fragment {
             }
         });
 
-        btnHost = (Button) root.findViewById(R.id.btnjoin);
-        btnHost.setOnClickListener(new View.OnClickListener() {
+        btnJoin= (Button) root.findViewById(R.id.btnjoin);
+        btnJoin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
