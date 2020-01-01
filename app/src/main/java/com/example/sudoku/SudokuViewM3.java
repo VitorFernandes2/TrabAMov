@@ -63,6 +63,7 @@ public class SudokuViewM3 extends View {
     private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9;
 
     private boolean server;
+    PrintWriter copiaoutput;
 
     public SudokuViewM3(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
                         Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
@@ -487,6 +488,88 @@ public class SudokuViewM3 extends View {
 
     }
 
+    public void setValue(int value,int poscol,int poslin){
+
+        //selectedCelCol e selectedCelLin
+        if (poscol != -1 && poslin != -1 && value != -1)
+            if (value != 0){
+                if (boardComp[poslin][poscol] == 0){
+                    if (!inAnotationsMode){
+
+                        board[poslin][poscol] = value;
+
+                        //Se estiver correto
+                        if (Resolve(value, poscol, poslin)){
+
+                            players[playerIndex].setPoint(players[playerIndex].getPoint() + 1);
+                            tvPoints.setText(""+players[playerIndex].getPoint());
+
+                            players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
+
+                            //Se o valor estiver correto bloqueia-se a célula
+                            boardComp[poslin][poscol] = value;
+
+                        }
+
+                    }
+                    else
+                        anotations[value - 1][poslin][poscol] = value;
+                }
+            }
+
+        invalidate();
+
+    }
+
+
+    public void setprintwriter(PrintWriter obg){
+        this.copiaoutput = obg;
+    }
+
+    public void sendoutputvalue(int val, int selectcol, int selectlin){
+
+        final JSONObject praenv = new JSONObject();
+
+        /*
+        Layout do json a enviar/receber:
+        int acao -> define o tipo de ação
+        int val -> define um valor a meter
+        int poscol -> define a posicao coluna
+        int poslin -> define a posica linha
+        string extra -> informação extra
+        */
+
+        try {
+            praenv.put("acao",4);
+            praenv.put("val", val);
+            praenv.put("poscol", selectcol);
+            praenv.put("poslin", selectlin);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(copiaoutput != null) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("ViewINFO", "Serverview: sending new val to client");
+                        copiaoutput.println(praenv.toString());
+                        copiaoutput.flush();
+                    } catch (Exception e) {
+                        Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                    }
+                }
+            });
+            t.start();
+        } else {
+            Log.d("ViewINFO", "não ha copia de printwriter");
+        }
+
+
+    }
+
+    // old
     public void setValue(int value){
 
         if (selectedCelCol != -1 && selectedCelLin != -1)
@@ -507,6 +590,7 @@ public class SudokuViewM3 extends View {
                             //Se o valor estiver correto bloqueia-se a célula
                             boardComp[selectedCelLin][selectedCelCol] = value;
 
+                            sendoutputvalue(value,selectedCelCol,selectedCelLin);
                         }
 
                         //Se tiver ganho
@@ -764,6 +848,7 @@ public class SudokuViewM3 extends View {
         startTimer();
 
     }
+
 
 
 }

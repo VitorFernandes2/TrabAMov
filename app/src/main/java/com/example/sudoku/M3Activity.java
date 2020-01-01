@@ -307,6 +307,7 @@ public class M3Activity extends AppCompatActivity {
         output.println(praenv.toString());
         output.flush();
 
+        sudokuView.setprintwriter(output);
     }
 
     @Override
@@ -334,8 +335,8 @@ public class M3Activity extends AppCompatActivity {
         Layout do json a enviar/receber:
         int acao -> define o tipo de ação
         int val -> define um valor a meter
-        int posx -> define a posicao x
-        int posy -> define a posica y
+        int poscol -> define a posicao coluna
+        int poslin -> define a posica linha
         string extra -> informação extra
         */
 
@@ -410,6 +411,30 @@ public class M3Activity extends AppCompatActivity {
             sudokuView.setBoard(array);
 
         }
+
+        if(acao == 4){ // recebe informação de um valor a alterar
+
+            int val = -1,poscol = -1,poslin = -1;
+            try {
+
+                val = mov.getInt("val");
+                poscol = mov.getInt("poscol");
+                poslin = mov.getInt("poslin");
+                //nome = mov.getString("extra");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            sudokuView.setValue(val,poscol,poslin);
+        }
+
+        if(acao == 20){ // existe um vencedor
+
+            //Todo
+
+        }
+
 
 
     }
