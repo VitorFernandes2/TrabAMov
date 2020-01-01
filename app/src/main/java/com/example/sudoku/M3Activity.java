@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.icu.text.IDNA;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -60,6 +61,7 @@ public class M3Activity extends AppCompatActivity {
     private int[][][] anotations = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
     int difficulty;
     boolean server;
+    boolean serveraccept = true;
 
     ProgressDialog pd = null;
     ServerSocket serverSocket=null;
@@ -90,7 +92,7 @@ public class M3Activity extends AppCompatActivity {
             return;
         }
 
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         server = getIntent().getBooleanExtra("isserver",false);
 
         tvErrors = findViewById(R.id.textView6M2);
@@ -229,6 +231,9 @@ public class M3Activity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+
+                    //while(serveraccept)
+
                     serverSocket = new ServerSocket(PORT);
                     socketGame = serverSocket.accept();
                     serverSocket.close();
@@ -334,6 +339,7 @@ public class M3Activity extends AppCompatActivity {
         input = null;
         output = null;
         socketGame = null;
+        serveraccept = false;
     };
 
     private void precessreceiveinfo(JSONObject mov){
@@ -519,6 +525,35 @@ public class M3Activity extends AppCompatActivity {
             });
             t.start();
 
+            if(sudokuView.result()){
+
+                final JSONObject praenve = new JSONObject();
+                try {
+                    praenve.put("acao",10);
+                    praenve.put("venced", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
+                    praenve.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                Thread t2 = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("sudokuINFO", "Server: sending vencedor to client");
+                            output.println(praenve.toString());
+                            output.flush();
+                        } catch (Exception e) {
+                            Log.d("sudokuINFO", "Server: sending vencedor to client exept");
+                        }
+                    }
+                });
+                t2.start();
+
+                sudokuView.winnerserver(sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName(),sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+
+            }
 
         }
 
@@ -538,6 +573,27 @@ public class M3Activity extends AppCompatActivity {
             }
 
             sudokuView.respotvalueserv(value,poscol,poslin,resultado,points);
+
+        }
+
+        if(acao == 10){ // servidor avisou que um elemento venceu o jogo
+
+            /*
+            praenve.put("acao",10);
+            praenve.put("venced", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
+            praenve.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());*/
+
+            String venc = "player"; int point = 0;
+            try {
+
+                venc = mov.getString("venced");
+                point = mov.getInt("points");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            sudokuView.winnerserver(venc,point);
 
         }
 
@@ -936,6 +992,18 @@ public class M3Activity extends AppCompatActivity {
         //Mete os dados corretos no ecrã
         sudokuView.restartGame();
 
+    }*/
+
+    /*@Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
     }*/
 
 

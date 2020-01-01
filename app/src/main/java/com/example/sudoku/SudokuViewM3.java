@@ -660,7 +660,7 @@ public class SudokuViewM3 extends View {
 
                         if (result()){
 
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            /*AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                             builder.setTitle(R.string.finished);
                             builder.setMessage(R.string.WinMessage)
                                     .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
@@ -670,7 +670,7 @@ public class SudokuViewM3 extends View {
                                         }
                                     });
                             AlertDialog alert = builder.create();
-                            alert.show();
+                            alert.show();*/
 
                         }
 
@@ -891,7 +891,29 @@ public class SudokuViewM3 extends View {
 
         try {
             obj.put("nome",userid);
-            obj.put("tipo","2P");
+            obj.put("tipo","MP");
+            obj.put("desc", outdesc);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        addrestult(obj);
+
+        //prefs.edit().putString("result1",obj.toString()).apply();
+
+    }
+
+    private void updatehistory(String userid,String points){
+
+        JSONObject obj = new JSONObject();
+
+        String outdesc = getContext().getString(R.string.resultsM2);
+        String[] parts2 = outdesc.split(":");
+        outdesc = parts2[0] + points + parts2[1];
+
+        try {
+            obj.put("nome",userid);
+            obj.put("tipo","MP");
             obj.put("desc", outdesc);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1112,6 +1134,27 @@ public class SudokuViewM3 extends View {
 
         invalidateButtons();
         invalidate();
+
+    }
+
+    public void winnerserver(String venc, int point) {
+
+        String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+        String output = partsmsg[0] + venc + partsmsg[1];
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(R.string.finished);
+        builder.setMessage(output)
+                .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent intent = new Intent(getContext(), MainActivity.class);
+                        getContext().startActivity(intent);
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+        updatehistory(venc,Integer.toString(point));
 
     }
 }

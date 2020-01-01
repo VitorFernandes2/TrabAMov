@@ -30,7 +30,7 @@
     <string name="player2">Player 2</string>
     <string name="change_to_m1">Change to single player</string>
     <string name="statistics_op">Opponent:</string>
-    <string name="statistics_type">Game Mode:</string>
+    <string name="statistics_type">Mode:</string>
     <string name="statistics_result">Result:</string>
     <string name="resultsM1">Won in : m</string>
     <string name="resultspM1">Lost</string>
