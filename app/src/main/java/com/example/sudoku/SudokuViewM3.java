@@ -40,6 +40,8 @@ import java.util.Enumeration;
 
 import pt.isec.ans.sudokulibrary.Sudoku;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class SudokuViewM3 extends View {
     public static final int BOARD_SIZE = 9;
 
@@ -64,6 +66,8 @@ public class SudokuViewM3 extends View {
 
     private boolean server;
     PrintWriter copiaoutput;
+    private boolean myturn = false;
+    private int[] resultsserver = new int[3];
 
     public SudokuViewM3(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
                         Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
@@ -88,6 +92,11 @@ public class SudokuViewM3 extends View {
 
         this.server = isserver;
 
+        if(isserver == true){
+            myturn = true;
+        }
+        resultsserver[0] = 0;
+
         startInfo();
         createPaints();
     }
@@ -98,7 +107,9 @@ public class SudokuViewM3 extends View {
         String name1 = getResources().getString(R.string.player1);
         String name2 = getResources().getString(R.string.player2);
 
-        players[0] = new Player(name1,0,0,30000);
+        SharedPreferences sharedPref = getContext().getSharedPreferences("user_id", MODE_PRIVATE);
+        String userId = sharedPref.getString("user_id", "Username");
+        players[0] = new Player(userId,0,0,30000);
         players[1] = new Player(name2,0,0,30000);
 
         tvPlayer.setText(players[playerIndex].getName());
@@ -150,13 +161,20 @@ public class SudokuViewM3 extends View {
         }
     }
 
-    public void startTimersocket(String nome,int point,int erro) {
+    public void startTimersocket(String nome,int point,int erro, long defaulttim) {
 
         if(countDownTimer != null){
             countDownTimer.cancel();
             countDownTimer = null;
         }
-        long defaulttime = 30000;
+        long defaulttime;
+        if(defaulttim == -1){
+            defaulttime = 30000;
+        }else{
+            defaulttime = defaulttim;
+        }
+
+
         playerIndex = 0;
         players[playerIndex].setTime(defaulttime);
         players[playerIndex].setName(nome);
@@ -174,23 +192,6 @@ public class SudokuViewM3 extends View {
             @Override
             public void onFinish() {
 
-                //Quando o tempo acabar troca de jogador
-                /*if (playerIndex == 0)
-                    playerIndex = 1;
-                else
-                    playerIndex = 0;*/
-
-                //Sempre que começa uma ronda nova faz reset aos tempos
-                //resetTimes();
-
-                //tvPlayer.setText(players[playerIndex].getName());
-                //tvPoints.setText("" + players[playerIndex].getPoint());
-                //tvErrors.setText("" + players[playerIndex].getErrors());
-
-                /*if(server == true)
-                    updatetimetsocket();
-
-                startTimer();*/
 
             }
 
@@ -207,6 +208,15 @@ public class SudokuViewM3 extends View {
             praenv.put("extra", players[playerIndex].getName());
             praenv.put("poscol", players[playerIndex].getPoint());
             praenv.put("poslin", players[playerIndex].getErrors());
+
+            if(playerIndex == 0){
+                praenv.put("turn", false);
+                this.myturn = true;
+            }else{
+                praenv.put("turn", true);
+                this.myturn = false;
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -298,27 +308,48 @@ public class SudokuViewM3 extends View {
                     int x = cellW / 2 + cellW * c;
                     int y = cellH / 2 + cellH * r + cellH / 6;
 
-                    //Se este valor estiver errado
-                    if (!Resolve(n, c, r)){
+                    if(server == true) {
+                        //Se este valor estiver errado
+                        if (!Resolve(n, c, r)) {
 
-                        paintMainNumbers.setColor(Color.RED);
-                        canvas.drawText(""+n, x, y, paintMainNumbers);
-                        paintMainNumbers.setColor(Color.rgb(0,0,128));
-                        players[playerIndex].setErrors(players[playerIndex].getErrors() + 1);
-                        tvErrors.setText(""+players[playerIndex].getErrors());
+                            paintMainNumbers.setColor(Color.RED);
+                            canvas.drawText("" + n, x, y, paintMainNumbers);
+                            paintMainNumbers.setColor(Color.rgb(0, 0, 128));
+                            players[playerIndex].setErrors(players[playerIndex].getErrors() + 1);
+                            tvErrors.setText("" + players[playerIndex].getErrors());
 
-                        board[r][c] = 0;
-                        this.postInvalidateDelayed(3000);
+                            board[r][c] = 0;
+                            this.postInvalidateDelayed(3000);
 
-                    }else{
+                        } else {
 
-                        if (boardComp[r][c] == 0)
-                            paintMainNumbers.setColor(Color.GRAY);
+                            if (boardComp[r][c] == 0)
+                                paintMainNumbers.setColor(Color.GRAY);
 
-                        canvas.drawText(""+n, x, y, paintMainNumbers);
-                        paintMainNumbers.setColor(Color.rgb(0,0,128));
+                            canvas.drawText("" + n, x, y, paintMainNumbers);
+                            paintMainNumbers.setColor(Color.rgb(0, 0, 128));
+                        }
+                    } else {
+                        if (Resolveclient(n, c, r)) {
+
+                            paintMainNumbers.setColor(Color.RED);
+                            canvas.drawText("" + n, x, y, paintMainNumbers);
+                            paintMainNumbers.setColor(Color.rgb(0, 0, 128));
+                            players[playerIndex].setErrors(players[playerIndex].getErrors() + 1);
+                            tvErrors.setText("" + players[playerIndex].getErrors());
+
+                            board[r][c] = 0;
+                            this.postInvalidateDelayed(3000);
+
+                        } else {
+
+                            if (boardComp[r][c] == 0)
+                                paintMainNumbers.setColor(Color.GRAY);
+
+                            canvas.drawText("" + n, x, y, paintMainNumbers);
+                            paintMainNumbers.setColor(Color.rgb(0, 0, 128));
+                        }
                     }
-
 
 
                 } else {
@@ -366,6 +397,21 @@ public class SudokuViewM3 extends View {
 
     }
 
+    private boolean Resolveclient(int value, int column, int row){
+
+        //Diz se um valor está errado não, segunda a ultima informação descrita pelo servidor
+
+        if(column == resultsserver[1] && row == resultsserver[2]){
+            if(resultsserver[0] == 1){ // 1 quer dizer q está errado
+                return true;
+            }else {
+                return false;
+            }
+
+        }
+        return false;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -402,6 +448,19 @@ public class SudokuViewM3 extends View {
                 this.boardComp[i][j] = this.board[i][j];
             }
         }
+        invalidate();
+    }
+
+    public void setBoard(int[][] board,String nome,long time,int point,int error){
+        this.board = board;
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                this.boardComp[i][j] = this.board[i][j];
+            }
+        }
+
+        startTimersocket(nome,point,error,time);
+
         invalidate();
     }
 
@@ -676,78 +735,137 @@ public class SudokuViewM3 extends View {
     // old
     public void setValue(int value){
 
-        if (selectedCelCol != -1 && selectedCelLin != -1)
-            if (value != 0){
-                if (boardComp[selectedCelLin][selectedCelCol] == 0){
-                    if (!inAnotationsMode){
+        if(myturn == false){
+            Toast.makeText(getContext().getApplicationContext(),
+                    "Its not your turn", Toast.LENGTH_LONG)
+                    .show();
+            return;
+        }
 
-                        board[selectedCelLin][selectedCelCol] = value;
+        if(server == true) { // ---------- se for o servidor ---------------
+            if (selectedCelCol != -1 && selectedCelLin != -1)
+                if (value != 0) {
+                    if (boardComp[selectedCelLin][selectedCelCol] == 0) {
+                        if (!inAnotationsMode) {
 
-                        //Se estiver correto
-                        if (Resolve(value, selectedCelCol, selectedCelLin)){
+                            board[selectedCelLin][selectedCelCol] = value;
 
-                            players[playerIndex].setPoint(players[playerIndex].getPoint() + 1);
-                            tvPoints.setText(""+players[playerIndex].getPoint());
+                            //Se estiver correto
+                            if (Resolve(value, selectedCelCol, selectedCelLin)) {
 
-                            players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
+                                players[playerIndex].setPoint(players[playerIndex].getPoint() + 1);
+                                tvPoints.setText("" + players[playerIndex].getPoint());
 
-                            //Se o valor estiver correto bloqueia-se a célula
-                            boardComp[selectedCelLin][selectedCelCol] = value;
+                                players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
 
-                            sendoutputvalue(value,selectedCelCol,selectedCelLin);
-                        }
+                                //Se o valor estiver correto bloqueia-se a célula
+                                boardComp[selectedCelLin][selectedCelCol] = value;
 
-                        //Se tiver ganho
-                        if (result()){
+                                sendoutputvalue(value, selectedCelCol, selectedCelLin);
+                            }
 
-                            // calcula o vencedor
-                            String nome1 = players[0].getName();
-                            int point1 = players[0].getPoint();
-                            String nome2 = players[1].getName();
-                            int point2 = players[1].getPoint();
-                            String output; int vencedor;
-                            if(point1 > point2){
-                                String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                output = partsmsg[0] + nome1 + partsmsg[1];
-                                vencedor = 1;
-                            }else if (point1 < point2){
-                                String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                output = partsmsg[0] + nome2 + partsmsg[1];
-                                vencedor = 2;
-                            }else{ // se forem iguais
-                                String userid = tvPlayer.getText().toString();
-                                if(userid.equals(nome1)){
+                            //Se tiver ganho
+                            if (result()) {
+
+                                // calcula o vencedor
+                                String nome1 = players[0].getName();
+                                int point1 = players[0].getPoint();
+                                String nome2 = players[1].getName();
+                                int point2 = players[1].getPoint();
+                                String output;
+                                int vencedor;
+                                if (point1 > point2) {
                                     String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
                                     output = partsmsg[0] + nome1 + partsmsg[1];
                                     vencedor = 1;
-                                } else {
+                                } else if (point1 < point2) {
                                     String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
                                     output = partsmsg[0] + nome2 + partsmsg[1];
                                     vencedor = 2;
+                                } else { // se forem iguais
+                                    String userid = tvPlayer.getText().toString();
+                                    if (userid.equals(nome1)) {
+                                        String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                        output = partsmsg[0] + nome1 + partsmsg[1];
+                                        vencedor = 1;
+                                    } else {
+                                        String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
+                                        output = partsmsg[0] + nome2 + partsmsg[1];
+                                        vencedor = 2;
+                                    }
                                 }
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                                builder.setTitle(R.string.finished);
+                                builder.setMessage(output)
+                                        .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                Intent intent = new Intent(getContext(), MainActivity.class);
+                                                getContext().startActivity(intent);
+                                            }
+                                        });
+                                AlertDialog alert = builder.create();
+                                alert.show();
+
+                                // adicionar no sharedpreferences o resultado e organiza
+                                updatehistory(vencedor);
                             }
 
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                            builder.setTitle(R.string.finished);
-                            builder.setMessage(output)
-                                    .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
-                                            Intent intent = new Intent(getContext(), MainActivity.class);
-                                            getContext().startActivity(intent);
-                                        }
-                                    });
-                            AlertDialog alert = builder.create();
-                            alert.show();
-
-                            // adicionar no sharedpreferences o resultado e organiza
-                            updatehistory(vencedor);
-                        }
-
+                        } else
+                            anotations[value - 1][selectedCelLin][selectedCelCol] = value;
                     }
-                    else
-                        anotations[value - 1][selectedCelLin][selectedCelCol] = value;
                 }
-            }
+
+        } else{ // ---------- se for o client ---------------
+            if (selectedCelCol != -1 && selectedCelLin != -1)
+                if (value != 0) {
+                    if (boardComp[selectedCelLin][selectedCelCol] == 0) {
+                        if (!inAnotationsMode) {
+
+                            final JSONObject praenv = new JSONObject();
+
+                            /*
+                            Layout do json a enviar/receber:
+                            int acao -> define o tipo de ação
+                            int val -> define um valor a meter
+                            int poscol -> define a posicao coluna
+                            int poslin -> define a posica linha
+                            string extra -> informação extra
+                            */
+
+                            try {
+                                praenv.put("acao",8);
+                                praenv.put("val", value);
+                                praenv.put("poscol", selectedCelCol);
+                                praenv.put("poslin", selectedCelLin);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                            if(copiaoutput != null) {
+                                Thread t = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Log.d("ViewINFO", "client: sending new val to server");
+                                            copiaoutput.println(praenv.toString());
+                                            copiaoutput.flush();
+                                        } catch (Exception e) {
+                                            Log.d("ViewINFO", "client: sending new val to client server");
+                                        }
+                                    }
+                                });
+                                t.start();
+                            } else {
+                                Log.d("ViewINFO", "não ha copia de printwriter client");
+                            }
+
+                        } else
+                            anotations[value - 1][selectedCelLin][selectedCelCol] = value;
+                    }
+                }
+
+        }
 
         invalidateButtons();
         invalidate();
@@ -787,7 +905,7 @@ public class SudokuViewM3 extends View {
 
     private void addrestult(JSONObject obj){
 
-        SharedPreferences prefs = getContext().getSharedPreferences("results", Context.MODE_PRIVATE);
+        SharedPreferences prefs = getContext().getSharedPreferences("results", MODE_PRIVATE);
 
         if(prefs.contains("result1")){
 
@@ -953,6 +1071,47 @@ public class SudokuViewM3 extends View {
 
     }
 
+    public void setTurn(boolean turn){
+        this.myturn = turn;
+    }
+
+    public boolean getTurn(){
+        return this.myturn;
+    }
+
+    public boolean calculateview(int value, int selcol, int sellin) {
+
+        //Se estiver correto
+        return Resolve(value, selcol, sellin);
+
+    }
+
+    public void respotvalueserv(int value, int poscol, int poslin, boolean resultado,int points) {
+
+        if(resultado == true){
+
+            //players[playerIndex].setPoint(players[playerIndex].getPoint() + 1);
+            tvPoints.setText("" + points);
+
+            players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
+
+            //Se o valor estiver correto bloqueia-se a célula
+            board[selectedCelLin][selectedCelCol] = value;
+            boardComp[poslin][poscol] = value;
+            resultsserver[0] = 0;
+
+        }else{
+
+            resultsserver[0] = 1;
+            resultsserver[1] = poscol;
+            resultsserver[2] = poslin;
+            board[selectedCelLin][selectedCelCol] = value;
 
 
+        }
+
+        invalidateButtons();
+        invalidate();
+
+    }
 }

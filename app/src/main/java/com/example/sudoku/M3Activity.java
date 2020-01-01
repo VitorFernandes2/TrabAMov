@@ -388,6 +388,10 @@ public class M3Activity extends AppCompatActivity {
                 try {
                     praenv.put("acao",3);
                     praenv.put("extra", out);
+                    praenv.put("nome" , sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
+                    praenv.put("time",sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getTime());
+                    praenv.put("atpoint" , sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+                    praenv.put("aterror",sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getErrors());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -415,17 +419,22 @@ public class M3Activity extends AppCompatActivity {
 
             Log.d("Sudoku", "Recebi comando 3" );
             int[][] array = null;
+            String nameat = "player"; long timeat = 0; int point = 0,error=0;
             try {
 
                 String extra2 = mov.getString("extra");
                 array = convertStringArray(extra2);
+                nameat = mov.getString("nome");
+                timeat = mov.getLong("time");
+                point = mov.getInt("atpoint");
+                error = mov.getInt("aterror");
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             //int[][] array = convertStringArray(extra);
 
-            sudokuView.setBoard(array);
+            sudokuView.setBoard(array,nameat,timeat,point,error);
 
         }
 
@@ -448,19 +457,88 @@ public class M3Activity extends AppCompatActivity {
 
         if(acao == 6){ // recebe update de user atual
 
-            int point = -1,errors = -1;String nome = null;
+            int point = -1,errors = -1;String nome = null;boolean turn = false;
             try {
 
                 nome = mov.getString("extra");
                 point = mov.getInt("poscol");
                 errors = mov.getInt("poslin");
+                turn = mov.getBoolean("turn");
                 //nome = mov.getString("extra");
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
-            sudokuView.startTimersocket(nome,point,errors);
+            sudokuView.setTurn(turn);
+            sudokuView.startTimersocket(nome,point,errors,-1);
+        }
+
+        if(acao == 8){ // recebe pedido de valor do client
+
+            int value = -1,poscol = -1,poslin = -1;
+            try {
+
+                value = mov.getInt("val");
+                poscol = mov.getInt("poscol");
+                poslin = mov.getInt("poslin");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            boolean val = false;
+            if(sudokuView.calculateview(value,poscol,poslin)){
+                val = true;
+                sudokuView.setValue(value,poscol,poslin);
+            }
+
+            final JSONObject praenv = new JSONObject();
+            try {
+                praenv.put("acao",9);
+                praenv.put("val", value);
+                praenv.put("poscol", poscol);
+                praenv.put("poslin", poslin);
+                praenv.put("result", val);
+                praenv.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("sudokuINFO", "Server: sending val possviel to client");
+                        output.println(praenv.toString());
+                        output.flush();
+                    } catch (Exception e) {
+                        Log.d("sudokuINFO", "Server: sending val possviel to client exept");
+                    }
+                }
+            });
+            t.start();
+
+
+        }
+
+        if(acao == 9){ // recebe resposta de servidor sobre valor escolhido
+
+            int value = -1,poscol = -1,poslin = -1,points = 0; boolean resultado = false;
+            try {
+
+                value = mov.getInt("val");
+                poscol = mov.getInt("poscol");
+                poslin = mov.getInt("poslin");
+                resultado = mov.getBoolean("result");
+                points = mov.getInt("points");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            sudokuView.respotvalueserv(value,poscol,poslin,resultado,points);
+
         }
 
         if(acao == 20){ // existe um vencedor
