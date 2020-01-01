@@ -115,7 +115,56 @@ public class SudokuViewM3 extends View {
 
     public void startTimer() {
 
-        countDownTimer = new CountDownTimer(players[playerIndex].getTime(), 1000) {
+        if(server == true) {
+            countDownTimer = new CountDownTimer(players[playerIndex].getTime(), 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    players[playerIndex].setTime(millisUntilFinished);
+                    updateTimer();
+                }
+
+                @Override
+                public void onFinish() {
+
+                    //Quando o tempo acabar troca de jogador
+                    if (playerIndex == 0)
+                        playerIndex = 1;
+                    else
+                        playerIndex = 0;
+
+                    //Sempre que começa uma ronda nova faz reset aos tempos
+                    resetTimes();
+
+                    tvPlayer.setText(players[playerIndex].getName());
+                    tvPoints.setText("" + players[playerIndex].getPoint());
+                    tvErrors.setText("" + players[playerIndex].getErrors());
+
+                    if (server == true)
+                        updatetimetsocket();
+
+                    startTimer();
+
+                }
+
+            }.start();
+        }
+    }
+
+    public void startTimersocket(String nome,int point,int erro) {
+
+        if(countDownTimer != null){
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+        long defaulttime = 30000;
+        playerIndex = 0;
+        players[playerIndex].setTime(defaulttime);
+        players[playerIndex].setName(nome);
+        tvPlayer.setText(nome);
+        tvPoints.setText(Integer.toString(point));
+        tvErrors.setText(Integer.toString(erro));
+
+        countDownTimer = new CountDownTimer(defaulttime, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 players[playerIndex].setTime(millisUntilFinished);
@@ -126,24 +175,63 @@ public class SudokuViewM3 extends View {
             public void onFinish() {
 
                 //Quando o tempo acabar troca de jogador
-                if (playerIndex == 0)
+                /*if (playerIndex == 0)
                     playerIndex = 1;
                 else
-                    playerIndex = 0;
+                    playerIndex = 0;*/
 
                 //Sempre que começa uma ronda nova faz reset aos tempos
-                resetTimes();
+                //resetTimes();
 
-                tvPlayer.setText(players[playerIndex].getName());
-                tvPoints.setText("" + players[playerIndex].getPoint());
-                tvErrors.setText("" + players[playerIndex].getErrors());
-                startTimer();
+                //tvPlayer.setText(players[playerIndex].getName());
+                //tvPoints.setText("" + players[playerIndex].getPoint());
+                //tvErrors.setText("" + players[playerIndex].getErrors());
+
+                /*if(server == true)
+                    updatetimetsocket();
+
+                startTimer();*/
 
             }
 
         }.start();
 
     }
+
+    private void updatetimetsocket(){
+
+        final JSONObject praenv = new JSONObject();
+
+        try {
+            praenv.put("acao",6);
+            praenv.put("extra", players[playerIndex].getName());
+            praenv.put("poscol", players[playerIndex].getPoint());
+            praenv.put("poslin", players[playerIndex].getErrors());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        if(copiaoutput != null) {
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("ViewINFO", "Serverview: sending new val to client");
+                        copiaoutput.println(praenv.toString());
+                        copiaoutput.flush();
+                    } catch (Exception e) {
+                        Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                    }
+                }
+            });
+            t.start();
+        } else {
+            Log.d("ViewINFO", "não ha copia de printwriter");
+        }
+
+    }
+
 
     private void updateTimer() {
 
@@ -508,6 +596,22 @@ public class SudokuViewM3 extends View {
 
                             //Se o valor estiver correto bloqueia-se a célula
                             boardComp[poslin][poscol] = value;
+
+                        }
+
+                        if (result()){
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            builder.setTitle(R.string.finished);
+                            builder.setMessage(R.string.WinMessage)
+                                    .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            Intent intent = new Intent(getContext(), MainActivity.class);
+                                            getContext().startActivity(intent);
+                                        }
+                                    });
+                            AlertDialog alert = builder.create();
+                            alert.show();
 
                         }
 

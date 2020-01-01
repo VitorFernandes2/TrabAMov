@@ -119,6 +119,11 @@ public class M3Activity extends AppCompatActivity {
         gerar(difficulty);
 
         procMsg = new Handler();
+
+        Player[] tempa = sudokuView.getPlayers();
+        SharedPreferences sharedPref = getSharedPreferences("user_id", MODE_PRIVATE);
+        String userId = sharedPref.getString("user_id", "Username");
+        tempa[0].setName(userId);
         /*if(server == true){
             server();
 
@@ -259,6 +264,7 @@ public class M3Activity extends AppCompatActivity {
                 if(server == false){
                     clientstartermsg(output);
                 }
+                sudokuView.setprintwriter(output);
 
                 while (!Thread.currentThread().isInterrupted()) {
                     Log.d("ServerINFO", "antes do readline");
@@ -283,7 +289,8 @@ public class M3Activity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(),
                                 R.string.game_finished, Toast.LENGTH_LONG)
                                 .show();
-                        changetoM1();
+                        if(sudokuView.result() == false)
+                            changetoM1();
                     }
                 });
             }
@@ -307,7 +314,7 @@ public class M3Activity extends AppCompatActivity {
         output.println(praenv.toString());
         output.flush();
 
-        sudokuView.setprintwriter(output);
+        //sudokuView.setprintwriter(output);
     }
 
     @Override
@@ -355,6 +362,16 @@ public class M3Activity extends AppCompatActivity {
         if(acao == 1){ // mensagem inical de login de user
             if(server == true) { // confere se é servidor
 
+                // define name
+                String name = "playerclient";
+                try {
+                    name = mov.getString("extra");
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Player[] cop = sudokuView.getPlayers();
+                cop[1].setName(name);
 
                 Log.d("Sudoku", "Recebi comando 1" );
                 final JSONObject praenv = new JSONObject();
@@ -427,6 +444,23 @@ public class M3Activity extends AppCompatActivity {
             }
 
             sudokuView.setValue(val,poscol,poslin);
+        }
+
+        if(acao == 6){ // recebe update de user atual
+
+            int point = -1,errors = -1;String nome = null;
+            try {
+
+                nome = mov.getString("extra");
+                point = mov.getInt("poscol");
+                errors = mov.getInt("poslin");
+                //nome = mov.getString("extra");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            sudokuView.startTimersocket(nome,point,errors);
         }
 
         if(acao == 20){ // existe um vencedor
