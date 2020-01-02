@@ -211,6 +211,31 @@ public class M3Activity extends AppCompatActivity {
     }
 
     void server() {
+
+        // apaga servidores se por acaso manter informação
+        if (serverSocket!=null) {
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+            }
+            serverSocket=null;
+        }
+        if (socketGame!=null) {
+            try {
+                socketGame.close();
+            } catch (IOException e) {
+            }
+            socketGame=null;
+        }
+        if (socketGame2!=null) {
+            try {
+                socketGame2.close();
+            } catch (IOException e) {
+            }
+            socketGame2=null;
+        }
+        //serveraccept = false;
+
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress()); // get ip
         pd = new ProgressDialog(this);
@@ -336,7 +361,7 @@ public class M3Activity extends AppCompatActivity {
                 input2 = new BufferedReader(new InputStreamReader(
                         socketGame2.getInputStream()));
                 output2 = new PrintWriter(socketGame2.getOutputStream());
-                sudokuView.setprintwriter(output2);
+                sudokuView.setprintwriter2(output2);
 
                 while (!Thread.currentThread().isInterrupted()) {
                     Log.d("ServerINFO", "antes do readline 2");
@@ -591,6 +616,10 @@ public class M3Activity extends AppCompatActivity {
             if(sudokuView.calculateview(value,poscol,poslin)){
                 val = true;
                 sudokuView.setValue(value,poscol,poslin);
+            }else{
+                int errosplay = sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getErrors();
+                sudokuView.getPlayers()[sudokuView.getPlayerIndex()].setErrors(errosplay +1);
+                envsigerrado(pessoa);
             }
 
             final JSONObject praenv = new JSONObject();
@@ -627,7 +656,7 @@ public class M3Activity extends AppCompatActivity {
 
                     try {
                         enviftrue.put("acao",4);
-                        enviftrue.put("val", val);
+                        enviftrue.put("val", value);
                         enviftrue.put("poscol", poscol);
                         enviftrue.put("poslin", poslin);
                     } catch (JSONException e) {
@@ -674,7 +703,7 @@ public class M3Activity extends AppCompatActivity {
 
                     try {
                         enviftrue.put("acao",4);
-                        enviftrue.put("val", val);
+                        enviftrue.put("val", value);
                         enviftrue.put("poscol", poscol);
                         enviftrue.put("poslin", poslin);
                     } catch (JSONException e) {
@@ -703,11 +732,15 @@ public class M3Activity extends AppCompatActivity {
             }
             if (sudokuView.result()) {
 
+                String[] resultados = sudokuView.getVecedor();
+
                 final JSONObject praenve = new JSONObject();
                 try {
                     praenve.put("acao", 10);
-                    praenve.put("venced", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
-                    praenve.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+                    //praenve.put("venced", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
+                    //praenve.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+                    praenve.put("venced", resultados[0]);
+                    praenve.put("points", Integer.parseInt(resultados[1]));
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -753,7 +786,7 @@ public class M3Activity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }*/
-                sudokuView.winnerserver(sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName(), sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+                sudokuView.winnerserver(resultados[0], Integer.parseInt(resultados[1]));
             }
 
         }
@@ -798,7 +831,59 @@ public class M3Activity extends AppCompatActivity {
 
         }
 
+        if(acao == 11){ // servidor avisou para incrementar o valor dos errados o jogo (client)
 
+            sudokuView.inccorrenterror();
+
+        }
+
+    }
+
+    private void envsigerrado(int pessoa) {
+
+        final JSONObject praenve = new JSONObject();
+        try {
+            praenve.put("acao", 11);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(pessoa != 1) {
+            Thread t2 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("sudokuINFO", "Server: sending vencedor to client");
+                        output.println(praenve.toString());
+                        output.flush();
+                    } catch (Exception e) {
+                        Log.d("sudokuINFO", "Server: sending vencedor to client exept");
+                    }
+                }
+            });
+            t2.start();
+        }
+
+        if(pessoa != 2) {
+            if (output2 != null) {
+                Thread t3 = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("sudokuINFO", "Server: sending vencedor to client 2");
+                            output2.println(praenve.toString());
+                            output2.flush();
+                        } catch (Exception e) {
+                            Log.d("sudokuINFO", "Server: sending vencedor to client 2 exept");
+                        }
+                    }
+                });
+                t3.start();
+            }
+        }
+
+        sudokuView.inccorrenterror();
     }
 
     private  int[][] convertStringArray(String val){

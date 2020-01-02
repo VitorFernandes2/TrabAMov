@@ -123,6 +123,7 @@ public class SudokuViewM3 extends View {
 
         players[0].setTime(30000);
         players[1].setTime(30000);
+        players[2].setTime(30000);
 
     }
 
@@ -185,6 +186,8 @@ public class SudokuViewM3 extends View {
         playerIndex = 0;
         players[playerIndex].setTime(defaulttime);
         players[playerIndex].setName(nome);
+        players[playerIndex].setPoint(point);
+        players[playerIndex].setErrors(erro);
         tvPlayer.setText(nome);
         tvPoints.setText(Integer.toString(point));
         tvErrors.setText(Integer.toString(erro));
@@ -730,18 +733,19 @@ public class SudokuViewM3 extends View {
 
                         board[poslin][poscol] = value;
 
+                        resultsserver[0] = 0;
                         //Se estiver correto
-                        if (Resolve(value, poscol, poslin)){
+                        //if (Resolve(value, poscol, poslin)){
 
                             players[playerIndex].setPoint(players[playerIndex].getPoint() + 1);
                             tvPoints.setText(""+players[playerIndex].getPoint());
 
-                            players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
+                            //players[playerIndex].setTime(players[playerIndex].getTime() + 20000);
 
                             //Se o valor estiver correto bloqueia-se a célula
                             boardComp[poslin][poscol] = value;
 
-                        }
+                        //}
 
                         if (result()){
 
@@ -869,53 +873,55 @@ public class SudokuViewM3 extends View {
                                 boardComp[selectedCelLin][selectedCelCol] = value;
 
                                 sendoutputvalue(value, selectedCelCol, selectedCelLin);
+                            } else {
+                                informeuerro();
                             }
 
                             //Se tiver ganho
                             if (result()) {
 
-                                // calcula o vencedor
-                                String nome1 = players[0].getName();
-                                int point1 = players[0].getPoint();
-                                String nome2 = players[1].getName();
-                                int point2 = players[1].getPoint();
-                                String output;
-                                int vencedor;
-                                if (point1 > point2) {
-                                    String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                    output = partsmsg[0] + nome1 + partsmsg[1];
-                                    vencedor = 1;
-                                } else if (point1 < point2) {
-                                    String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                    output = partsmsg[0] + nome2 + partsmsg[1];
-                                    vencedor = 2;
-                                } else { // se forem iguais
-                                    String userid = tvPlayer.getText().toString();
-                                    if (userid.equals(nome1)) {
-                                        String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                        output = partsmsg[0] + nome1 + partsmsg[1];
-                                        vencedor = 1;
-                                    } else {
-                                        String[] partsmsg = getContext().getString(R.string.WinMessageM2).split(":");
-                                        output = partsmsg[0] + nome2 + partsmsg[1];
-                                        vencedor = 2;
-                                    }
+                                final JSONObject praenve = new JSONObject();
+                                try {
+                                    praenve.put("acao", 10);
+                                    praenve.put("venced", players[playerIndex].getName());
+                                    praenve.put("points", players[playerIndex].getPoint());
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
 
-                                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                                builder.setTitle(R.string.finished);
-                                builder.setMessage(output)
-                                        .setPositiveButton(R.string.thanks, new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                Intent intent = new Intent(getContext(), MainActivity.class);
-                                                getContext().startActivity(intent);
-                                            }
-                                        });
-                                AlertDialog alert = builder.create();
-                                alert.show();
+                                Thread t2 = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Log.d("sudokuINFO", "Server: sending vencedor to client");
+                                            copiaoutput.println(praenve.toString());
+                                            copiaoutput.flush();
+                                        } catch (Exception e) {
+                                            Log.d("sudokuINFO", "Server: sending vencedor to client exept");
+                                        }
+                                    }
+                                });
+                                t2.start();
 
-                                // adicionar no sharedpreferences o resultado e organiza
-                                updatehistory(vencedor);
+                                if(copiaoutput2 != null){
+                                    Thread t3 = new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                Log.d("sudokuINFO", "Server: sending vencedor to client 2");
+                                                copiaoutput2.println(praenve.toString());
+                                                copiaoutput2.flush();
+                                            } catch (Exception e) {
+                                                Log.d("sudokuINFO", "Server: sending vencedor to client 2 exept");
+                                            }
+                                        }
+                                    });
+                                    t3.start();
+                                }
+
+                                winnerserver(players[playerIndex].getName(),players[playerIndex].getPoint());
+
                             }
 
                         } else
@@ -976,6 +982,49 @@ public class SudokuViewM3 extends View {
 
         invalidateButtons();
         invalidate();
+
+    }
+
+    private void informeuerro() {
+
+        final JSONObject praenve = new JSONObject();
+        try {
+            praenve.put("acao", 11);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Thread t2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Log.d("sudokuINFO", "Server: sending vencedor to client");
+                    copiaoutput.println(praenve.toString());
+                    copiaoutput.flush();
+                } catch (Exception e) {
+                    Log.d("sudokuINFO", "Server: sending vencedor to client exept");
+                }
+            }
+        });
+        t2.start();
+
+
+        if (copiaoutput2 != null) {
+            Thread t3 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("sudokuINFO", "Server: sending vencedor to client 2");
+                        copiaoutput2.println(praenve.toString());
+                        copiaoutput2.flush();
+                    } catch (Exception e) {
+                        Log.d("sudokuINFO", "Server: sending vencedor to client 2 exept");
+                    }
+                }
+            });
+            t3.start();
+        }
 
     }
 
@@ -1263,8 +1312,38 @@ public class SudokuViewM3 extends View {
 
         updatehistory(venc,Integer.toString(point));
 
-        copiaoutput.close();
-        copiaoutput2.close();
-        // falta socket
+    }
+
+    public String[] getVecedor() {
+
+        String[] out = new String[2];
+        int arraysize = 3;int maior = 0;
+
+        for(int i = 0; i< arraysize; i++){
+
+            if(i==0) {
+                maior = i;
+            } else{
+
+                if(players[i].getPoint() > players[maior].getPoint()){
+                    maior = i;
+                }
+            }
+        }
+
+        out[0] = players[maior].getName();
+        out[1] = Integer.toString(players[maior].getPoint());
+
+        return out;
+    }
+
+    public void inccorrenterror() {
+
+        players[0].setErrors(players[0].getErrors()+1);
+        String val = tvErrors.getText().toString();
+        int valprinc = Integer.parseInt(val);
+        valprinc = valprinc +1;
+
+        tvErrors.setText(Integer.toString(valprinc));
     }
 }
