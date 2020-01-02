@@ -45,7 +45,7 @@ import static android.content.Context.MODE_PRIVATE;
 public class SudokuViewM3 extends View {
     public static final int BOARD_SIZE = 9;
 
-    private Player[] players = new Player[2];
+    private Player[] players = new Player[3];
     private CountDownTimer countDownTimer;
     private int playerIndex = 0;
 
@@ -65,7 +65,8 @@ public class SudokuViewM3 extends View {
     private Button bt1, bt2, bt3, bt4, bt5, bt6, bt7, bt8, bt9;
 
     private boolean server;
-    PrintWriter copiaoutput;
+    PrintWriter copiaoutput; // print write do 1o player
+    PrintWriter copiaoutput2; // print writer do 2o player (server only)
     private boolean myturn = false;
     private int[] resultsserver = new int[3];
 
@@ -111,6 +112,7 @@ public class SudokuViewM3 extends View {
         String userId = sharedPref.getString("user_id", "Username");
         players[0] = new Player(userId,0,0,30000);
         players[1] = new Player(name2,0,0,30000);
+        players[2] = new Player("unused",0,0,30000);
 
         tvPlayer.setText(players[playerIndex].getName());
         startTimer();
@@ -138,10 +140,15 @@ public class SudokuViewM3 extends View {
                 public void onFinish() {
 
                     //Quando o tempo acabar troca de jogador
-                    if (playerIndex == 0)
+                    if (playerIndex == 0) {
                         playerIndex = 1;
-                    else
-                        playerIndex = 0;
+                    }else if (playerIndex == 1) {
+                        if(players[2].getName().equals("unused"))
+                            playerIndex = 0;
+                        else
+                            playerIndex = 2;
+                    }else{
+                        playerIndex = 0;}
 
                     //Sempre que começa uma ronda nova faz reset aos tempos
                     resetTimes();
@@ -201,15 +208,14 @@ public class SudokuViewM3 extends View {
 
     private void updatetimetsocket(){
 
-        final JSONObject praenv = new JSONObject();
-
+        /*final JSONObject praenv = new JSONObject();
         try {
             praenv.put("acao",6);
             praenv.put("extra", players[playerIndex].getName());
             praenv.put("poscol", players[playerIndex].getPoint());
             praenv.put("poslin", players[playerIndex].getErrors());
 
-            if(playerIndex == 0){
+            if(playerIndex == 0){ // mudar pros turnos
                 praenv.put("turn", false);
                 this.myturn = true;
             }else{
@@ -219,25 +225,104 @@ public class SudokuViewM3 extends View {
 
         } catch (JSONException e) {
             e.printStackTrace();
+        }*/
+        final JSONObject praenv = new JSONObject();
+        final JSONObject praenvopc = new JSONObject();
+        try {
+            praenv.put("acao",6);
+            praenv.put("extra", players[playerIndex].getName());
+            praenv.put("poscol", players[playerIndex].getPoint());
+            praenv.put("poslin", players[playerIndex].getErrors());
+            praenv.put("turn", false);
+
+            praenvopc.put("acao",6);
+            praenvopc.put("extra", players[playerIndex].getName());
+            praenvopc.put("poscol", players[playerIndex].getPoint());
+            praenvopc.put("poslin", players[playerIndex].getErrors());
+            praenvopc.put("turn", true);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        this.myturn = false;
+        if(playerIndex == 0){
+            this.myturn = true;
         }
 
-
-        if(copiaoutput != null) {
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Log.d("ViewINFO", "Serverview: sending new val to client");
-                        copiaoutput.println(praenv.toString());
-                        copiaoutput.flush();
-                    } catch (Exception e) {
-                        Log.d("ViewINFO", "Serverview: sending new val to client exept");
+        if(playerIndex == 1) { // se for a  vez do player 1
+            if (copiaoutput != null) {
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("ViewINFO", "Serverview: sending new val to client");
+                            copiaoutput.println(praenvopc.toString());
+                            copiaoutput.flush();
+                        } catch (Exception e) {
+                            Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                        }
                     }
-                }
-            });
-            t.start();
-        } else {
-            Log.d("ViewINFO", "não ha copia de printwriter");
+                });
+                t.start();
+            } else {
+                Log.d("ViewINFO", "não ha copia de printwriter");
+            }
+        } else { // se não for a vez do player 1
+            if (copiaoutput != null) {
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("ViewINFO", "Serverview: sending new val to client");
+                            copiaoutput.println(praenv.toString());
+                            copiaoutput.flush();
+                        } catch (Exception e) {
+                            Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                        }
+                    }
+                });
+                t.start();
+            } else {
+                Log.d("ViewINFO", "não ha copia de printwriter");
+            }
+        }
+
+        if(playerIndex == 2) { // se for a vez do player 2
+            if (copiaoutput2 != null) { // se existir outro player
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("ViewINFO", "Serverview: sending new val to client");
+                            copiaoutput2.println(praenvopc.toString());
+                            copiaoutput2.flush();
+                        } catch (Exception e) {
+                            Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                        }
+                    }
+                });
+                t.start();
+            } else {
+                Log.d("ViewINFO", "não ha copia de printwriter");
+            }
+        } else { // se não for a vez do player 2
+            if (copiaoutput2 != null) { // se existir outro player
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("ViewINFO", "Serverview: sending new val to client");
+                            copiaoutput2.println(praenv.toString());
+                            copiaoutput2.flush();
+                        } catch (Exception e) {
+                            Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                        }
+                    }
+                });
+                t.start();
+            } else {
+                Log.d("ViewINFO", "não ha copia de printwriter");
+            }
         }
 
     }
@@ -689,6 +774,10 @@ public class SudokuViewM3 extends View {
         this.copiaoutput = obg;
     }
 
+    public void setprintwriter2(PrintWriter obg){
+        this.copiaoutput2 = obg;
+    }
+
     public void sendoutputvalue(int val, int selectcol, int selectlin){
 
         final JSONObject praenv = new JSONObject();
@@ -719,6 +808,24 @@ public class SudokuViewM3 extends View {
                         Log.d("ViewINFO", "Serverview: sending new val to client");
                         copiaoutput.println(praenv.toString());
                         copiaoutput.flush();
+                    } catch (Exception e) {
+                        Log.d("ViewINFO", "Serverview: sending new val to client exept");
+                    }
+                }
+            });
+            t.start();
+        } else {
+            Log.d("ViewINFO", "não ha copia de printwriter");
+        }
+
+        if(copiaoutput2 != null) { // se existir um 2o player
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("ViewINFO", "Serverview: sending new val to client");
+                        copiaoutput2.println(praenv.toString());
+                        copiaoutput2.flush();
                     } catch (Exception e) {
                         Log.d("ViewINFO", "Serverview: sending new val to client exept");
                     }
@@ -1156,5 +1263,8 @@ public class SudokuViewM3 extends View {
 
         updatehistory(venc,Integer.toString(point));
 
+        copiaoutput.close();
+        copiaoutput2.close();
+        // falta socket
     }
 }

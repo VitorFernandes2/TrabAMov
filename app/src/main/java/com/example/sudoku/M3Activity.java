@@ -73,6 +73,11 @@ public class M3Activity extends AppCompatActivity {
 
     private int[][] boardbackup;
 
+    // 2nd player
+    Socket socketGame2 = null;
+    BufferedReader input2;
+    PrintWriter output2;
+    Handler procMsg2 = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +126,7 @@ public class M3Activity extends AppCompatActivity {
         gerar(difficulty);
 
         procMsg = new Handler();
+        procMsg2 = new Handler();
 
         Player[] tempa = sudokuView.getPlayers();
         SharedPreferences sharedPref = getSharedPreferences("user_id", MODE_PRIVATE);
@@ -231,14 +237,33 @@ public class M3Activity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-
-                    //while(serveraccept)
-
+                    int qual = 0;
                     serverSocket = new ServerSocket(PORT);
+                    while(serveraccept) {
+                        if(qual == 0){
+
+                            socketGame = serverSocket.accept();
+                            commThread.start();
+                            qual = 1;
+                            pd.dismiss();
+                            serverSocket.close();
+                            serverSocket = null;
+                        }else{
+                            serverSocket = new ServerSocket(PORT);
+                            socketGame2 = serverSocket.accept();
+                            serverSocket.close();
+                            serverSocket = null;
+                            Log.d("INFO", "entrou outro jogador");
+                            commThread2.start();
+                            serveraccept = false;
+                        }
+
+                    }
+                    /*serverSocket = new ServerSocket(PORT);
                     socketGame = serverSocket.accept();
                     serverSocket.close();
                     serverSocket=null;
-                    commThread.start();
+                    commThread.start();*/
                 } catch (Exception e) {
                     e.printStackTrace();
                     socketGame = null;
@@ -246,7 +271,9 @@ public class M3Activity extends AppCompatActivity {
                 procMsg.post(new Runnable() {
                     @Override
                     public void run() {
-                        pd.dismiss();
+                        //pd.dismiss();
+                        Toast.makeText(getApplicationContext()
+                                , "A 2nd player has entered", Toast.LENGTH_SHORT).show();
                         if (socketGame == null) {
                             Log.d("Sudoku", "was finished (M3 - line 234)");
                             finish();
@@ -280,7 +307,7 @@ public class M3Activity extends AppCompatActivity {
                     procMsg.post(new Runnable() {
                         @Override
                         public void run() {
-                            precessreceiveinfo(jo);
+                            precessreceiveinfo(jo,1);
                         }
                     });
 
@@ -301,6 +328,47 @@ public class M3Activity extends AppCompatActivity {
             }
         }
     });
+
+    Thread commThread2 = new Thread(new Runnable() {
+        @Override
+        public void run() { // exclusivamente utilizador pelo servidor
+            try {
+                input2 = new BufferedReader(new InputStreamReader(
+                        socketGame2.getInputStream()));
+                output2 = new PrintWriter(socketGame2.getOutputStream());
+                sudokuView.setprintwriter(output2);
+
+                while (!Thread.currentThread().isInterrupted()) {
+                    Log.d("ServerINFO", "antes do readline 2");
+                    String read = input2.readLine();
+                    Log.d("ServerINFO", "depois do readline 2" + read);
+                    final JSONObject jo = new JSONObject(read);
+                    Log.d("ServerINFO", "Received 2: " + jo);
+                    procMsg2.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            precessreceiveinfo(jo,2);
+                        }
+                    });
+
+                }
+            } catch (Exception e) {
+                Log.d("ServerINFO", "exeption: " + e.toString());
+                procMsg2.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        finish();
+                        Toast.makeText(getApplicationContext(),
+                                R.string.game_finished, Toast.LENGTH_LONG)
+                                .show();
+                        if(sudokuView.result() == false)
+                            changetoM1();
+                    }
+                });
+            }
+        }
+    });
+
 
     private void clientstartermsg(PrintWriter output){
 
@@ -328,21 +396,31 @@ public class M3Activity extends AppCompatActivity {
         Log.d("ServerINFO", "Server: on pause lançado");
         try {
             commThread.interrupt();
+            commThread2.interrupt();
             if (socketGame != null)
                 socketGame.close();
+            if (socketGame2 != null)
+                socketGame2.close();
             if (output != null)
                 output.close();
+            if (output2 != null)
+                output2.close();
             if (input != null)
                 input.close();
+            if (input2 != null)
+                input2.close();
         } catch (Exception e) {
         }
         input = null;
         output = null;
         socketGame = null;
+        socketGame2 = null;
+        input2 = null;
+        output2 = null;
         serveraccept = false;
     };
 
-    private void precessreceiveinfo(JSONObject mov){
+    private void precessreceiveinfo(JSONObject mov,int pessoa){
 
         /*
         Layout do json a enviar/receber:
@@ -365,7 +443,7 @@ public class M3Activity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if(acao == 1){ // mensagem inical de login de user
+        if(acao == 1){ // mensagem inical de login de user (server)
             if(server == true) { // confere se é servidor
 
                 // define name
@@ -377,7 +455,10 @@ public class M3Activity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 Player[] cop = sudokuView.getPlayers();
-                cop[1].setName(name);
+                if(pessoa == 1)
+                    cop[1].setName(name);
+                else
+                    cop[2].setName(name);
 
                 Log.d("Sudoku", "Recebi comando 1" );
                 final JSONObject praenv = new JSONObject();
@@ -402,26 +483,40 @@ public class M3Activity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-
-                Thread t = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Log.d("sudokuINFO", "Server: sending table info to client");
-                            output.println(praenv.toString());
-                            output.flush();
-                        } catch (Exception e) {
-                            Log.d("sudokuINFO", "Server: sending table info to client exept");
+                if(pessoa == 1) { // se for o client 1
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.d("sudokuINFO", "Server: sending table info to client");
+                                output.println(praenv.toString());
+                                output.flush();
+                            } catch (Exception e) {
+                                Log.d("sudokuINFO", "Server: sending table info to client exept");
+                            }
                         }
-                    }
-                });
-                t.start();
-
+                    });
+                    t.start();
+                } else { // se for o client 2
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.d("sudokuINFO", "Server: sending table info to client");
+                                output2.println(praenv.toString());
+                                output2.flush();
+                            } catch (Exception e) {
+                                Log.d("sudokuINFO", "Server: sending table info to client exept");
+                            }
+                        }
+                    });
+                    t.start();
+                }
 
             }
         }
 
-        if(acao == 3){ // recebe o tabuleiro no inicio
+        if(acao == 3){ // recebe o tabuleiro no inicio (client)
 
             Log.d("Sudoku", "Recebi comando 3" );
             int[][] array = null;
@@ -444,7 +539,7 @@ public class M3Activity extends AppCompatActivity {
 
         }
 
-        if(acao == 4){ // recebe informação de um valor a alterar
+        if(acao == 4){ // recebe informação de um valor a alterar (client)
 
             int val = -1,poscol = -1,poslin = -1;
             try {
@@ -461,7 +556,7 @@ public class M3Activity extends AppCompatActivity {
             sudokuView.setValue(val,poscol,poslin);
         }
 
-        if(acao == 6){ // recebe update de user atual
+        if(acao == 6){ // recebe update de user atual (client)
 
             int point = -1,errors = -1;String nome = null;boolean turn = false;
             try {
@@ -480,7 +575,7 @@ public class M3Activity extends AppCompatActivity {
             sudokuView.startTimersocket(nome,point,errors,-1);
         }
 
-        if(acao == 8){ // recebe pedido de valor do client
+        if(acao == 8){ // recebe pedido de valor do client (server)
 
             int value = -1,poscol = -1,poslin = -1;
             try {
@@ -511,25 +606,106 @@ public class M3Activity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
+            if(pessoa == 1) {
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("sudokuINFO", "Server: sending val possviel to client");
+                            output.println(praenv.toString());
+                            output.flush();
+                        } catch (Exception e) {
+                            Log.d("sudokuINFO", "Server: sending val possviel to client exept");
+                        }
+                    }
+                });
+                t.start();
+
+                if(val == true){
+
+                    final JSONObject enviftrue = new JSONObject();
+
                     try {
-                        Log.d("sudokuINFO", "Server: sending val possviel to client");
-                        output.println(praenv.toString());
-                        output.flush();
-                    } catch (Exception e) {
-                        Log.d("sudokuINFO", "Server: sending val possviel to client exept");
+                        enviftrue.put("acao",4);
+                        enviftrue.put("val", val);
+                        enviftrue.put("poscol", poscol);
+                        enviftrue.put("poslin", poslin);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if(output2 != null) {
+                        Thread t5 = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Log.d("ViewINFO", "Serverview: sending new val to client 2 if correct");
+                                    output2.println(enviftrue.toString());
+                                    output2.flush();
+                                } catch (Exception e) {
+                                    Log.d("ViewINFO", "Serverview: sending new val to client 2 if correct exept");
+                                }
+                            }
+                        });
+                        t5.start();
+                    } else {
+                        Log.d("ViewINFO", "não ha copia de printwriter (line 642)");
                     }
                 }
-            });
-            t.start();
 
-            if(sudokuView.result()){
+            }else{
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d("sudokuINFO", "Server: sending val possviel to client");
+                            output2.println(praenv.toString());
+                            output2.flush();
+                        } catch (Exception e) {
+                            Log.d("sudokuINFO", "Server: sending val possviel to client exept");
+                        }
+                    }
+                });
+                t.start();
+
+                if(val == true){
+
+                    final JSONObject enviftrue = new JSONObject();
+
+                    try {
+                        enviftrue.put("acao",4);
+                        enviftrue.put("val", val);
+                        enviftrue.put("poscol", poscol);
+                        enviftrue.put("poslin", poslin);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    if(output != null) {
+                        Thread t5 = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Log.d("ViewINFO", "Serverview: sending new val to client 2 if correct");
+                                    output.println(enviftrue.toString());
+                                    output.flush();
+                                } catch (Exception e) {
+                                    Log.d("ViewINFO", "Serverview: sending new val to client 2 if correct exept");
+                                }
+                            }
+                        });
+                        t5.start();
+                    } else {
+                        Log.d("ViewINFO", "não ha copia de printwriter (line 642)");
+                    }
+                }
+
+            }
+            if (sudokuView.result()) {
 
                 final JSONObject praenve = new JSONObject();
                 try {
-                    praenve.put("acao",10);
+                    praenve.put("acao", 10);
                     praenve.put("venced", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName());
                     praenve.put("points", sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
 
@@ -551,13 +727,38 @@ public class M3Activity extends AppCompatActivity {
                 });
                 t2.start();
 
-                sudokuView.winnerserver(sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName(),sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
+                if(output2 != null){
+                    Thread t3 = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.d("sudokuINFO", "Server: sending vencedor to client 2");
+                                output2.println(praenve.toString());
+                                output2.flush();
+                            } catch (Exception e) {
+                                Log.d("sudokuINFO", "Server: sending vencedor to client 2 exept");
+                            }
+                        }
+                    });
+                    t3.start();
+                }
 
+                /*if (socketGame != null) {
+                    try {
+                        socketGame.close();
+                        if (socketGame2 != null)
+                            socketGame2.close();
+                        serveraccept = false;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }*/
+                sudokuView.winnerserver(sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getName(), sudokuView.getPlayers()[sudokuView.getPlayerIndex()].getPoint());
             }
 
         }
 
-        if(acao == 9){ // recebe resposta de servidor sobre valor escolhido
+        if(acao == 9){ // recebe resposta de servidor sobre valor escolhido (client)
 
             int value = -1,poscol = -1,poslin = -1,points = 0; boolean resultado = false;
             try {
@@ -573,10 +774,10 @@ public class M3Activity extends AppCompatActivity {
             }
 
             sudokuView.respotvalueserv(value,poscol,poslin,resultado,points);
-
+            //finish();
         }
 
-        if(acao == 10){ // servidor avisou que um elemento venceu o jogo
+        if(acao == 10){ // servidor avisou que um elemento venceu o jogo (client)
 
             /*
             praenve.put("acao",10);
@@ -596,13 +797,6 @@ public class M3Activity extends AppCompatActivity {
             sudokuView.winnerserver(venc,point);
 
         }
-
-        if(acao == 20){ // existe um vencedor
-
-            //Todo
-
-        }
-
 
 
     }
