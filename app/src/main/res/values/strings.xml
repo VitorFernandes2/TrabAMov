@@ -43,4 +43,5 @@
     <string name="game_finished">The game was finished</string>
     <string name="mpTurno">Turn:</string>
     <string name="noint">No internet Connection</string>
+    <string name="deleteMP">Deletion is disabled in Multiplayer</string>
 </resources>

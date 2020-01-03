@@ -147,9 +147,10 @@ public class SudokuViewM3 extends View {
         players[2] = new Player("unused",0,0,30000);
 
         tvPlayer.setText(players[playerIndex].getName());
-        startTimer();
+        //startTimer();
 
     }
+
     private void startInfo2(){
 
         //Prepare the players
@@ -167,7 +168,7 @@ public class SudokuViewM3 extends View {
 
     }
 
-    private void resetTimes(){
+    public void resetTimes(){
 
         players[0].setTime(30000);
         players[1].setTime(30000);
@@ -1219,22 +1220,7 @@ public class SudokuViewM3 extends View {
 
     public void deleteCellValue(){
 
-        //Se o valor não for de origem ou uma hint
-        if (boardComp[selectedCelLin][selectedCelCol] == 0)
-            //Se uma célula estiver seleccionada
-            if (selectedCelCol != -1 && selectedCelLin != -1){
-
-                //Se a célula estiver correta decrementa o valor
-                if (Resolve(board[selectedCelLin][selectedCelCol], selectedCelCol, selectedCelLin))
-                    players[playerIndex].setPoint(players[playerIndex].getPoint() - 1);
-
-                this.tvPoints.setText("" + players[playerIndex].getPoint());
-
-                board[selectedCelLin][selectedCelCol] = 0;
-                boardComp[selectedCelLin][selectedCelCol] = 0;
-                invalidate();
-
-            }
+        Toast.makeText(getContext(), getContext().getString(R.string.deleteMP), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -1480,5 +1466,13 @@ public class SudokuViewM3 extends View {
 
     public void CancelCountDownTimer (){
         this.countDownTimer.cancel();
+    }
+
+    public void setmyturn(boolean i){
+        this.myturn = i;
+    }
+
+    public boolean getmyturn(){
+        return this.myturn;
     }
 }

@@ -44,4 +44,5 @@
     <string name="game_finished">O jogo foi finalizado</string>
     <string name="mpTurno">Turno:</string>
     <string name="noint">Não há ligação à internet</string>
+    <string name="deleteMP">Apagar é desabilitado no Multiplayer</string>
 </resources>

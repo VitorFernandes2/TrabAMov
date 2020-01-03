@@ -303,6 +303,7 @@ public class M3Activity extends AppCompatActivity {
                                 , "A 2nd player has entered", Toast.LENGTH_SHORT).show();
                         if (socketGame == null) {
                             Log.d("Sudoku", "was finished (M3 - line 234)");
+                            pd.dismiss();
                             finish();
                         }
                     }
@@ -436,6 +437,8 @@ public class M3Activity extends AppCompatActivity {
                 input.close();
             if (input2 != null)
                 input2.close();
+            if(serverSocket != null)
+                serverSocket.close();
         } catch (Exception e) {
         }
         input = null;
@@ -445,6 +448,7 @@ public class M3Activity extends AppCompatActivity {
         input2 = null;
         output2 = null;
         serveraccept = false;
+        serverSocket = null;
     };
 
     private void precessreceiveinfo(JSONObject mov,int pessoa){
@@ -498,6 +502,15 @@ public class M3Activity extends AppCompatActivity {
                             out += Integer.toString(boardbackup[i][j]);
                     }
                 }
+
+                // fix de timer (Restart )
+                if(pessoa == 1) {
+                    //sudokuView.CancelCountDownTimer();
+                    sudokuView.setPlayerIndex(0);
+                    sudokuView.resetTimes();
+                    sudokuView.startTimer();
+                }
+                // -----
 
                 try {
                     praenv.put("acao",3);
@@ -1307,13 +1320,16 @@ public class M3Activity extends AppCompatActivity {
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
             // guardar informação pre nova view
-            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null;
+            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null; int anotback[][][] = null;
+            boolean turnback = false;
             if(server == true){
                 playersback = copyplayers();
                 indexback = sudokuView.getPlayerIndex();
                 boardback = copyboard(1);
                 boardcompback = copyboard(2);
+                anotback = copyanotations();
                 sudokuView.CancelCountDownTimer();
+                turnback = sudokuView.getmyturn();
             }
             // ----
 
@@ -1358,11 +1374,13 @@ public class M3Activity extends AppCompatActivity {
                 }
             } else{
 
-                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null) {
+                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null && anotback != null) {
                     sudokuView.setBoard(boardback);
                     sudokuView.setBoardComp(boardcompback);
                     sudokuView.setPlayerIndex(indexback);
                     sudokuView.setPlayers(playersback);
+                    sudokuView.setAnotations(anotback);
+                    sudokuView.setmyturn(turnback);
                 }
                 sudokuView.setprintwriter2(output2);
                 sudokuView.startTimer();
@@ -1375,13 +1393,16 @@ public class M3Activity extends AppCompatActivity {
             Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
 
             // guardar informação pre nova view
-            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null;
+            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null;int anotback[][][] = null;
+            boolean turnback = false;
             if(server == true){
                 playersback = copyplayers();
                 indexback = sudokuView.getPlayerIndex();
                 boardback = copyboard(1);
                 boardcompback = copyboard(2);
+                anotback = copyanotations();
                 sudokuView.CancelCountDownTimer();
+                turnback = sudokuView.getmyturn();
             }
             // ----
 
@@ -1426,11 +1447,13 @@ public class M3Activity extends AppCompatActivity {
                 }
             } else{
 
-                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null) {
+                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null && anotback != null) {
                     sudokuView.setBoard(boardback);
                     sudokuView.setBoardComp(boardcompback);
                     sudokuView.setPlayerIndex(indexback);
                     sudokuView.setPlayers(playersback);
+                    sudokuView.setAnotations(anotback);
+                    sudokuView.setmyturn(turnback);
                 }
                 sudokuView.setprintwriter2(output2);
                 sudokuView.startTimer();
@@ -1457,6 +1480,27 @@ public class M3Activity extends AppCompatActivity {
                     out[i][j] = getoriginalboard[i][j];
                 }else{
                     out[i][j] = getoriginalboardcomp[i][j];
+                }
+
+            }
+
+        }
+
+        return out;
+    }
+
+    private int[][][] copyanotations() {
+
+        int[][][] getoriginalanot= sudokuView.getAnotations();
+
+        int[][][] out = new int[BOARD_SIZE][BOARD_SIZE][BOARD_SIZE];
+
+        for (int i = 0; i < BOARD_SIZE; i++){
+
+            for (int j = 0; j < BOARD_SIZE ; j++){
+
+                for (int k = 0; k < BOARD_SIZE ; k++ ){
+                    out[i][j][k] = getoriginalanot[i][j][k];
                 }
 
             }
