@@ -79,6 +79,8 @@ public class M3Activity extends AppCompatActivity {
     PrintWriter output2;
     Handler procMsg2 = null;
 
+    // screenrotate backups
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -563,6 +565,14 @@ public class M3Activity extends AppCompatActivity {
             sudokuView.setBoard(array,nameat,timeat,point,error);
 
         }
+
+        // ------------ metodos para landscape -------------
+        if(acao == 31){ // recebe pedido de client de toda a informação atual (server)
+
+            sudokuView.sendclientcurrentinfo(pessoa);
+
+        }
+        // -------------------------
 
         if(acao == 4){ // recebe informação de um valor a alterar (client)
 
@@ -1285,5 +1295,188 @@ public class M3Activity extends AppCompatActivity {
         }
     }*/
 
+    public void updateview(){
+        sudokuView.forceupdate();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+            // guardar informação pre nova view
+            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null;
+            if(server == true){
+                playersback = copyplayers();
+                indexback = sudokuView.getPlayerIndex();
+                boardback = copyboard(1);
+                boardcompback = copyboard(2);
+                sudokuView.CancelCountDownTimer();
+            }
+            // ----
+
+            setContentView(R.layout.activity_m3_land);
+            //tvErrors = findViewById(R.id.textView6M2);
+            tvErrors = findViewById(R.id.textView6M2);
+            tvPoints = findViewById(R.id.textView5M2);
+            tvPlayer = findViewById(R.id.tvPlayerNameM2);
+            tvTimer = findViewById(R.id.tvTimerM2);
+
+            SudokuViewM3 su = new SudokuViewM3(this, bt1, bt2, bt3, bt4, bt5, bt6, bt7,
+                    bt8, bt9, tvErrors, tvPoints, tvPlayer, tvTimer, server,1);
+            createButtons();
+            final FrameLayout flSudoku = findViewById(R.id.flSudokuM2);
+            flSudoku.removeAllViews();
+            flSudoku.addView(su);
+            sudokuView = su;
+            createButtonsListener();
+            sudokuView.setprintwriter(output);
+            //pede/obtem info
+            if(server == false){
+                final JSONObject praenv = new JSONObject();
+                try {
+                    praenv.put("acao",31);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if(server == false) { // se for o client 1
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.d("sudokuINFO", "Server: sending table info to client");
+                                output.println(praenv.toString());
+                                output.flush();
+                            } catch (Exception e) {
+                                Log.d("sudokuINFO", "Server: sending table info to client exept");
+                            }
+                        }
+                    });
+                    t.start();
+                }
+            } else{
+
+                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null) {
+                    sudokuView.setBoard(boardback);
+                    sudokuView.setBoardComp(boardcompback);
+                    sudokuView.setPlayerIndex(indexback);
+                    sudokuView.setPlayers(playersback);
+                }
+                sudokuView.setprintwriter2(output2);
+                sudokuView.startTimer();
+
+            }
+            // -----
+            updateview();
+
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+
+            // guardar informação pre nova view
+            Player[] playersback = null ;int indexback= -1;int boardback[][] = null;int boardcompback[][] = null;
+            if(server == true){
+                playersback = copyplayers();
+                indexback = sudokuView.getPlayerIndex();
+                boardback = copyboard(1);
+                boardcompback = copyboard(2);
+                sudokuView.CancelCountDownTimer();
+            }
+            // ----
+
+            setContentView(R.layout.activity_m3);
+            //tvErrors = findViewById(R.id.textView6M2);
+            tvErrors = findViewById(R.id.textView6M2);
+            tvPoints = findViewById(R.id.textView5M2);
+            tvPlayer = findViewById(R.id.tvPlayerNameM2);
+            tvTimer = findViewById(R.id.tvTimerM2);
+
+            SudokuViewM3 su = new SudokuViewM3(this, bt1, bt2, bt3, bt4, bt5, bt6, bt7,
+                    bt8, bt9, tvErrors, tvPoints, tvPlayer, tvTimer, server,1);
+            createButtons();
+            final FrameLayout flSudoku = findViewById(R.id.flSudokuM2);
+            flSudoku.removeAllViews();
+            flSudoku.addView(su);
+            sudokuView = su;
+            createButtonsListener();
+            sudokuView.setprintwriter(output);
+            //pede/obtem info
+            if(server == false){
+                final JSONObject praenv = new JSONObject();
+                try {
+                    praenv.put("acao",31);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                if(server == false) { // se for o client 1
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.d("sudokuINFO", "Server: sending table info to client");
+                                output.println(praenv.toString());
+                                output.flush();
+                            } catch (Exception e) {
+                                Log.d("sudokuINFO", "Server: sending table info to client exept");
+                            }
+                        }
+                    });
+                    t.start();
+                }
+            } else{
+
+                if(boardback != null && boardcompback!= null && indexback != -1 && playersback != null) {
+                    sudokuView.setBoard(boardback);
+                    sudokuView.setBoardComp(boardcompback);
+                    sudokuView.setPlayerIndex(indexback);
+                    sudokuView.setPlayers(playersback);
+                }
+                sudokuView.setprintwriter2(output2);
+                sudokuView.startTimer();
+
+            }
+            // -----
+            updateview();
+        }
+
+    }
+
+    private int[][] copyboard(int type) {
+
+        int[][] getoriginalboard = sudokuView.getBoard();
+        int[][] getoriginalboardcomp = sudokuView.getBoardComp();
+
+        int[][] out = new int[BOARD_SIZE][BOARD_SIZE];
+
+        for (int i = 0; i < BOARD_SIZE; i++){
+
+            for (int j = 0; j < BOARD_SIZE ; j++){
+
+                if(type == 1){
+                    out[i][j] = getoriginalboard[i][j];
+                }else{
+                    out[i][j] = getoriginalboardcomp[i][j];
+                }
+
+            }
+
+        }
+
+        return out;
+    }
+
+    private Player[] copyplayers() {
+
+        Player[] playersback = new Player[3];
+        Player[] playersback2 = sudokuView.getPlayers();
+
+        for(int i = 0; i < 3; i++){
+            playersback[i] = new Player(playersback2[i].getName(),playersback2[i].getPoint(),playersback2[i].getErrors(),playersback2[i].getTime());
+        }
+
+        return playersback;
+
+    }
 
 }

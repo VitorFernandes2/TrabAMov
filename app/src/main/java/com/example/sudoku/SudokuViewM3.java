@@ -102,6 +102,38 @@ public class SudokuViewM3 extends View {
         createPaints();
     }
 
+    public SudokuViewM3(Context context, Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
+                        Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
+                        TextView tvPoints, TextView tvPlayer, TextView tvTimer, boolean isserver, int rot) {
+        super(context);
+        inAnotationsMode = false;
+
+        this.bt1 = bt1;
+        this.bt2 = bt2;
+        this.bt3 = bt3;
+        this.bt4 = bt4;
+        this.bt5 = bt5;
+        this.bt6 = bt6;
+        this.bt7 = bt7;
+        this.bt8 = bt8;
+        this.bt9 = bt9;
+
+        this.tvErrors = tvErrors;
+        this.tvPoints = tvPoints;
+        this.tvPlayer = tvPlayer;
+        this.tvTimer = tvTimer;
+
+        this.server = isserver;
+
+        if(isserver == true){
+            myturn = true;
+        }
+        resultsserver[0] = 0;
+
+        startInfo2();
+        createPaints();
+    }
+
     private void startInfo(){
 
         //Prepare the players
@@ -116,6 +148,22 @@ public class SudokuViewM3 extends View {
 
         tvPlayer.setText(players[playerIndex].getName());
         startTimer();
+
+    }
+    private void startInfo2(){
+
+        //Prepare the players
+        String name1 = getResources().getString(R.string.player1);
+        String name2 = getResources().getString(R.string.player2);
+
+        SharedPreferences sharedPref = getContext().getSharedPreferences("user_id", MODE_PRIVATE);
+        String userId = sharedPref.getString("user_id", "Username");
+        players[0] = new Player(userId,0,0,30000);
+        players[1] = new Player(name2,0,0,30000);
+        players[2] = new Player("unused",0,0,30000);
+
+        tvPlayer.setText(players[playerIndex].getName());
+        //startTimer();
 
     }
 
@@ -1345,5 +1393,92 @@ public class SudokuViewM3 extends View {
         valprinc = valprinc +1;
 
         tvErrors.setText(Integer.toString(valprinc));
+    }
+
+    public void forceupdate() {
+        invalidate();
+    }
+
+    public void reloadconstruct(Button bt1, Button bt2, Button bt3, Button bt4, Button bt5,
+                                Button bt6, Button bt7, Button bt8, Button bt9, TextView tvErrors,
+                                TextView tvPoints, TextView tvPlayer, TextView tvTimer){
+        inAnotationsMode = false;
+
+        this.bt1 = bt1;
+        this.bt2 = bt2;
+        this.bt3 = bt3;
+        this.bt4 = bt4;
+        this.bt5 = bt5;
+        this.bt6 = bt6;
+        this.bt7 = bt7;
+        this.bt8 = bt8;
+        this.bt9 = bt9;
+
+        this.tvErrors = tvErrors;
+        this.tvPoints = tvPoints;
+        this.tvPlayer = tvPlayer;
+        this.tvTimer = tvTimer;
+
+        createPaints();
+    }
+
+
+    public void sendclientcurrentinfo(int pessoa) {
+
+        final JSONObject praenv = new JSONObject();
+        String out = Integer.toString(board[0][0]);
+
+        for (int i = 0; i < BOARD_SIZE; i++){
+
+            for(int j = 0; j< BOARD_SIZE; j++){
+                if(!(i == 0 && j == 0))
+                    out += Integer.toString(board[i][j]);
+            }
+        }
+
+        try {
+            praenv.put("acao",3);
+            praenv.put("extra", out);
+            praenv.put("nome" , players[playerIndex].getName());
+            praenv.put("time",players[playerIndex].getTime());
+            praenv.put("atpoint" , players[playerIndex].getPoint());
+            praenv.put("aterror",players[playerIndex].getErrors());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if(pessoa == 1) { // se for o client 1
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("sudokuINFO", "Server: sending table info to client");
+                        copiaoutput.println(praenv.toString());
+                        copiaoutput.flush();
+                    } catch (Exception e) {
+                        Log.d("sudokuINFO", "Server: sending table info to client exept");
+                    }
+                }
+            });
+            t.start();
+        } else if (pessoa == 2){ // se for o client 2
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Log.d("sudokuINFO", "Server: sending table info to client");
+                        copiaoutput2.println(praenv.toString());
+                        copiaoutput2.flush();
+                    } catch (Exception e) {
+                        Log.d("sudokuINFO", "Server: sending table info to client exept");
+                    }
+                }
+            });
+            t.start();
+        }
+    }
+
+    public void CancelCountDownTimer (){
+        this.countDownTimer.cancel();
     }
 }
