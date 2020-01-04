@@ -83,7 +83,8 @@ public class HomeFragment extends Fragment {
 
     private void exitSudoku(){
 
-        getActivity().finish();
+        //getActivity().finish();
+        getActivity().finishAffinity(); // close all activities
         System.exit(0);
 
     }
